@@ -63,6 +63,18 @@ Three deterministic, fail-closed `PreToolUse` hooks, wired in `.claude/settings.
 Flip the value once the advisory period has validated the gates in practice; no other file
 needs to change.
 
+## Verification Stop-gate
+
+`.claude/hooks/verify-gate.sh` runs `.claude/verify --json` on every `Stop` event. Its mode is
+controlled by `HARNESS_VERIFY_STOP_MODE` in `.claude/settings.json` (`advise` default |
+`block`), separate from the Phase 4 guardrail rollout switch.
+
+With `verify.d/` intentionally empty in this build, every `verify` run fails closed — that's
+expected, not a bug. In `advise` mode (current default) that failure is surfaced as context but
+doesn't prevent the session from finishing; in `block` mode it would permanently block every
+session from finishing until a real stack adapter is registered. Flip to `block` once the first
+adapter lands, if you want "done" to be hard-gated by verification.
+
 ## Status
 
 This harness is under active build, phase by phase, per the interview-gated implementation

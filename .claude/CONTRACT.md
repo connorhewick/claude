@@ -123,6 +123,21 @@ Key properties every real adapter must preserve:
   read-only check-mode rather than a mutating auto-format, at the adapter author's discretion —
   document the choice in the adapter).
 
+## Consumers of this contract
+
+`.claude/hooks/verify-gate.sh` runs on the `Stop` event and calls `.claude/verify --json`,
+surfacing the result as feedback. Its own mode switch (`HARNESS_VERIFY_STOP_MODE` in
+`.claude/settings.json`'s `env` block — `advise` default | `block`) is independent of the
+verify contract itself:
+- `advise` — a non-passing result (including every stage `absent`, as in this build) is
+  reported to the user/agent, but the session is still allowed to stop.
+- `block` — a non-passing result denies stopping (`Stop` hook returns `decision: block`).
+
+With `verify.d/` empty, this build runs in `advise` mode by design: a `block` Stop-gate would
+permanently prevent any session from finishing until a real adapter exists, which is correct
+once a stack is chosen but not useful before then. Flip `HARNESS_VERIFY_STOP_MODE` to `block`
+once the first adapter registers, if you want "done" to be hard-gated by verification.
+
 ## Non-goals
 
 - `verify` does not detect language or stack. It has zero knowledge of what an adapter does

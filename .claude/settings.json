@@ -1,7 +1,8 @@
 {
-  "//": "Guardrails (Phase 4) below. Verification Stop-gate (Phase 5) not yet wired.",
+  "//": "Guardrails (Phase 4) and the verification Stop-gate (Phase 5).",
   "env": {
-    "HARNESS_GUARDRAIL_MODE": "advisory"
+    "HARNESS_GUARDRAIL_MODE": "advisory",
+    "HARNESS_VERIFY_STOP_MODE": "advise"
   },
   "hooks": {
     "PreToolUse": [
@@ -16,6 +17,13 @@
         "hooks": [
           { "type": "command", "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.sh" },
           { "type": "command", "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-branch-name.sh" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-gate.sh" }
         ]
       }
     ]

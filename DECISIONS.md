@@ -147,6 +147,25 @@ the default assumed because the user deferred.
   Verified hooks.md schema (event names, matcher syntax, exit-code semantics, JSON stdin/stdout
   shape) against current Claude Code docs before implementing, per Operating Rule 6.
 
+## 2026-07-01 — Phase 5: Fail-closed default
+- Question: When no verification adapter is registered, should verify block completion or
+  warn-only?
+- Decision: Block (exits non-zero) — confirms the Phase 1 CONTRACT.md spec already built; no
+  rework needed.
+- Default assumed (if deferred): n/a
+
+## 2026-07-01 — Phase 5: Stop-gate strength
+- Question: Should the Stop hook hard-block the agent from finishing until verify passes, or
+  just advise?
+- Decision: Advise only, for this build. `HARNESS_VERIFY_STOP_MODE=advise` in
+  `.claude/settings.json`. A non-passing verify result (including every stage `absent`, as
+  today) is surfaced as feedback but does not prevent the session from finishing.
+- Default assumed (if deferred): n/a
+- Notes: This is a separate switch from the Phase 4 `HARNESS_GUARDRAIL_MODE`. Flip to `block`
+  once a real verify.d/ adapter exists, if hard-gating "done" on verification is wanted.
+  Verified Stop-hook JSON output schema (`hookSpecificOutput.decision: "block"`,
+  `additionalContext`) against current docs before implementing, per Operating Rule 6.
+
 ## 2026-07-01 — Phase 2: Absolute prohibitions
 - Question: Never touch generated/vendored dirs / Never push to the default branch / Never
   rewrite git history / Never delete files without confirmation? (multi-select)
