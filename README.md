@@ -150,7 +150,35 @@ This is a deliberate deviation from the docs' SemVer recommendation for plugins 
 here since this is an internal tool with no external consumers depending on
 MAJOR/MINOR/PATCH compatibility semantics.
 
+## Handoff — where a future language/stack task plugs in
+
+This harness's core (context, guardrails, verification contract, orchestration, skills) is
+language- and stack-agnostic by design and is **done** as of Phase 8. A future task that adds
+support for a specific language or technical domain attaches **only** at these seams — it must
+not modify the core:
+
+1. **Verification adapter (primary seam).** Drop an executable file into `.claude/verify.d/`,
+   named exactly after the stage it implements (`format`, `lint`, `typecheck`, `test`, `build`,
+   or `security` — see `.claude/CONTRACT.md` for the full interface and a worked pseudo-code
+   example). Registration is automatic. Once present, the Stop-gate (`HARNESS_VERIFY_STOP_MODE`
+   in `.claude/settings.json`) begins passing for that stage — no core file changes.
+2. **Capability adapter (optional).** Add stack-specific MCP servers (a package registry, a
+   test-runner server, etc.) to a separate, clearly-labeled config layered over `.mcp.json` —
+   don't add them to the shared cross-stack `.mcp.json` itself.
+3. **Specialist subagent/skill (optional).** Add a language-specialist subagent and/or skill
+   *alongside* the five agnostic ones in `.claude/agents/`/`.claude/skills/`, reusing the
+   `verify` contract and existing MCP capabilities rather than embedding raw stack commands.
+   If distributed via the plugin, rerun `scripts/build-plugin.sh` to pick it up — but remember
+   `verify`/`verify.d`/`CONTRACT.md`/`rules` still don't belong in the plugin bundle (see
+   "Packaging & Distribution" above); a stack adapter is inherently per-project and belongs in
+   each consuming project's own `.claude/verify.d/`, added there directly or via
+   `scripts/bootstrap.sh`.
+
+The invariant: the agnostic core remains untouched and reusable across stacks; specialization
+is purely additive at the seams above. See `VALIDATION.md` for the full end-to-end validation
+this handoff point rests on.
+
 ## Status
 
-This harness is under active build, phase by phase, per the interview-gated implementation
-plan. See `DECISIONS.md` for progress.
+Phases 0–9 of the implementation plan are complete. See `DECISIONS.md` for the full interview
+log and `VALIDATION.md` for validation results.

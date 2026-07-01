@@ -258,6 +258,26 @@ the default assumed because the user deferred.
   `settings.local.json`, the vendored `verify` fails closed as expected, and it refuses to
   overwrite an existing setup.
 
+## 2026-07-01 — Phase 9: Acceptance
+- Question: Does `VALIDATION.md` (guardrails red-teamed in both modes; verify contract fails
+  closed + adapter registration tested; all 5 subagents dry-run invoked live; all 3 skills
+  confirmed loadable on-demand; plugin build + bootstrap script tested end-to-end on throwaway
+  projects) satisfy the harness build, or are adjustments needed?
+- Decision: Accepted as-is.
+- Default assumed (if deferred): n/a
+
+## 2026-07-01 — Phase 9: Handoff confirmation
+- Question: Is the extension seam (verify contract + `verify.d/` adapter mechanism, plus the
+  capability-adapter and specialist-subagent/skill seams) clear as the entry point for a future
+  language/stack specialization task?
+- Decision: Yes, clear. Documented in the README's "Handoff" section.
+- Default assumed (if deferred): n/a
+- Notes: This closes out the implementation plan (Phases 0–9). The harness core is
+  language/stack-agnostic, fails closed on verification with `verify.d/` empty, and is
+  installable via both the plugin+marketplace and bootstrap-script paths. A future task adding
+  a specific language/stack attaches only at the three documented seams, without editing the
+  core.
+
 ## 2026-07-01 — Phase 2: Absolute prohibitions
 - Question: Never touch generated/vendored dirs / Never push to the default branch / Never
   rewrite git history / Never delete files without confirmation? (multi-select)
