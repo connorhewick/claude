@@ -75,6 +75,29 @@ doesn't prevent the session from finishing; in `block` mode it would permanently
 session from finishing until a real stack adapter is registered. Flip to `block` once the first
 adapter lands, if you want "done" to be hard-gated by verification.
 
+## Orchestration
+
+Five role subagents in `.claude/agents/`, each narrow and behavior-defined (not tied to a
+language or stack):
+
+| Role | Use when | Tool scope |
+|---|---|---|
+| `planner` | Starting a non-trivial task that needs a plan first | No Write/Edit — returns a plan only |
+| `explorer` | Open-ended codebase investigation | No Write/Edit — read-only, returns findings only |
+| `reviewer` | Second opinion on a diff before declaring it done | No Write/Edit — read-only, reports findings |
+| `verifier` | Checking whether a change passes verification | Read/Glob/Grep/Bash (to run `.claude/verify`), no Write/Edit |
+| `doc-writer` | Recording a decision or fixing drifted docs | Full tool access, scoped by instruction to docs/README/ADRs only |
+
+All five default to `model: inherit` (the invoking session's model) rather than a pinned
+model — deliberately left open per Phase 0/6, since the harness should work across
+Haiku/Sonnet/Opus depending on token budget, not assume one.
+
+**Verifying tool-scope after adding/changing an agent file:** new or edited files under
+`.claude/agents/` are picked up at the start of a session, not mid-session. After changing
+one, start a fresh session and dry-run invoke it (e.g. via the `Agent` tool with
+`subagent_type` set to the role name) to confirm its actual tool access matches the
+frontmatter before relying on it.
+
 ## Status
 
 This harness is under active build, phase by phase, per the interview-gated implementation

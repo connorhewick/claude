@@ -166,6 +166,38 @@ the default assumed because the user deferred.
   Verified Stop-hook JSON output schema (`hookSpecificOutput.decision: "block"`,
   `additionalContext`) against current docs before implementing, per Operating Rule 6.
 
+## 2026-07-01 — Phase 6: Roles to include
+- Question: Which role subagents to include (multi-select) — Planner / Explorer / Reviewer /
+  Verifier / Doc-writer / Other?
+- Decision: All five — Planner, Explorer, Reviewer, Verifier, Doc-writer.
+- Default assumed (if deferred): n/a
+
+## 2026-07-01 — Phase 6: Per-role model defaults
+- Question: Given Phase 0 chose Sonnet-default overall, should any role deviate?
+- Decision: Left as an open item, dependent on available token-usage limits at run time. The
+  harness must be usable across Haiku, Sonnet, and Opus rather than pinning a model per role.
+- Default assumed (if deferred): Every role's frontmatter sets `model: inherit`, so each
+  subagent runs on whatever model the invoking session/user has selected, rather than a
+  hardcoded default. This is a real default choice (not merely deferred), made because it's
+  the only option compatible with "must work across all three models."
+- Notes: Per current subagent docs, `model: inherit` resolves the same as omitting the field.
+
+## 2026-07-01 — Phase 6: Per-role permissions and isolation
+- Question: Read-only vs. read-write per role; worktree isolation where relevant?
+- Decision: Planner/Explorer/Reviewer — `disallowedTools: Write, Edit, NotebookEdit` (no file
+  writes). Verifier — `tools: Read, Glob, Grep, Bash` plus the same disallowedTools (can run
+  `.claude/verify` via Bash, cannot edit). Doc-writer — full tool access, scoped to
+  docs/README/ADRs by instruction only (not by frontmatter, since Claude Code's tool
+  allowlist is by tool name, not by file path). No worktree isolation for any role in this
+  build.
+- Default assumed (if deferred): n/a
+- Notes: A live dry-run of each role wasn't possible in the same session that created the
+  agent files (new `.claude/agents/*.md` definitions load at session start, not mid-session).
+  Verified statically instead: well-formed frontmatter, required `name`/`description` present,
+  no stack/language reference in any prompt body. **Action for the user:** start a fresh
+  session and dry-run invoke each role via the `Agent` tool to confirm live tool-scope before
+  relying on it in production use.
+
 ## 2026-07-01 — Phase 2: Absolute prohibitions
 - Question: Never touch generated/vendored dirs / Never push to the default branch / Never
   rewrite git history / Never delete files without confirmation? (multi-select)
