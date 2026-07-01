@@ -1,0 +1,7 @@
+{
+  "name": "claude-code-harness",
+  "description": "Language-agnostic Claude Code harness: guardrail hooks, orchestration subagents, and reusable skills. Verification contract and path rules are project-specific and ship via the bootstrap script instead — see README.",
+  "version": "2026.7.1",
+  "author": { "name": "Connor", "email": "connor@hewick.ca" },
+  "repository": "https://github.com/connorhewick/claude"
+}
