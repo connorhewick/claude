@@ -44,6 +44,25 @@ No skill, agent, or rule is required just for an MCP server to be usable — Cla
 discovers and calls MCP tools on its own. Add a rule/skill/agent later only to encode actual
 workflow policy about how a tool should be used.
 
+## Guardrails
+
+Three deterministic, fail-closed `PreToolUse` hooks, wired in `.claude/settings.json`:
+
+| Hook | Matcher | Denies |
+|---|---|---|
+| `guard-edits.sh` | `Edit\|Write` | Edits to generated/vendored paths (globs sourced from `.claude/rules/generated-paths.md` — single source of truth); content that looks like a hardcoded secret (private key block, AWS access key, generic `secret`/`token`/`password`/`api_key` assignment). |
+| `guard-bash.sh` | `Bash` | Recursive force-delete (`rm -rf` or equivalent); `git push --force`/`-f` targeting the default branch; piping a remote download into a shell (`curl \| sh`, etc.). |
+| `guard-branch-name.sh` | `Bash` (branch-creation commands) | Branch names that don't match `<TICKET-ID>/<short-description>` (e.g. `PROJ-123/add-login`), falling back to `<type>/<short-description>` with `type` in `feat\|fix\|chore\|docs\|refactor\|test` when there's no ticket. |
+
+**Rollout mode** is controlled by a single switch: `HARNESS_GUARDRAIL_MODE` in
+`.claude/settings.json`'s `env` block.
+- `advisory` (current default) — violations are reported (hook exits non-blocking) but the
+  action proceeds.
+- `blocking` — violations deny the action (hook exits 2).
+
+Flip the value once the advisory period has validated the gates in practice; no other file
+needs to change.
+
 ## Status
 
 This harness is under active build, phase by phase, per the interview-gated implementation

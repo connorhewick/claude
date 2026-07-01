@@ -114,6 +114,39 @@ the default assumed because the user deferred.
   relevant only for workflow policy about *how* to use them (e.g. link Jira tickets in PRs),
   which is deferred to whenever that policy is actually wanted, not built speculatively now.
 
+## 2026-07-01 — Phase 4: Protected paths
+- Question: Which paths are hard-blocked from edits (generated dirs, vendored deps,
+  lockfiles, `.claude/` itself)?
+- Decision: Generated/vendored dirs only, reusing the exact glob list already declared in
+  `.claude/rules/generated-paths.md` (single source of truth — the hook parses that file's
+  frontmatter rather than duplicating the patterns).
+- Default assumed (if deferred): n/a
+- Notes: Lockfiles and `.claude/` itself were considered and not selected in this build.
+
+## 2026-07-01 — Phase 4: Hard-blocked shell patterns
+- Question: Confirm defaults (recursive force-delete, force-push to the default branch,
+  piping remote scripts into a shell) and add any others?
+- Decision: All three defaults, no additions.
+- Default assumed (if deferred): n/a
+
+## 2026-07-01 — Phase 4: Branch-name enforcement
+- Question: Enforce a branch-naming scheme at commit/PR time (yes/no)? If yes, what scheme?
+- Decision: Yes. Scheme: `<TICKET-ID>/<short-description>` by default (e.g.
+  `PROJ-123/add-login`); falls back to `<type>/<short-description>` (type in
+  feat|fix|chore|docs|refactor|test) when no ticket exists.
+- Default assumed (if deferred): n/a
+- Notes: Enforced by `.claude/hooks/guard-branch-name.sh` on `git checkout -b` / `git switch
+  -c` / `git branch <name>`.
+
+## 2026-07-01 — Phase 4: Rollout mode
+- Question: Start blocking immediately, or log-only first (per Phase 0 risk posture)?
+- Decision: Advisory (log-only) first, confirming the Phase 0 answer. Single switch:
+  `HARNESS_GUARDRAIL_MODE` in `.claude/settings.json`'s `env` block (`advisory` | `blocking`).
+- Default assumed (if deferred): n/a
+- Notes: All three hooks were red-teamed in both modes — see README "Guardrails" section.
+  Verified hooks.md schema (event names, matcher syntax, exit-code semantics, JSON stdin/stdout
+  shape) against current Claude Code docs before implementing, per Operating Rule 6.
+
 ## 2026-07-01 — Phase 2: Absolute prohibitions
 - Question: Never touch generated/vendored dirs / Never push to the default branch / Never
   rewrite git history / Never delete files without confirmation? (multi-select)
