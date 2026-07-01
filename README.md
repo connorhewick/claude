@@ -32,6 +32,18 @@ requested stage with no adapter in `.claude/verify.d/` is reported `absent` and 
 non-zero. See `.claude/CONTRACT.md` for the full interface and how a future stack adapter
 registers.
 
+## Capabilities
+
+Three cross-stack capability domains are planned: version control (GitHub), issue tracking
+(Jira), and documentation search (Confluence). None is wired into `.mcp.json` in this build —
+they will be added later as nested repos rather than inline server definitions. When one is
+added, its credential handling (env var reference, never an inline literal) and scope
+(read-only vs. read-write) must be decided and recorded in `DECISIONS.md` at that time.
+
+No skill, agent, or rule is required just for an MCP server to be usable — Claude Code
+discovers and calls MCP tools on its own. Add a rule/skill/agent later only to encode actual
+workflow policy about how a tool should be used.
+
 ## Status
 
 This harness is under active build, phase by phase, per the interview-gated implementation

@@ -94,6 +94,26 @@ the default assumed because the user deferred.
 - Default assumed (if deferred): n/a
 - Notes: No changelog practice enforced in this build.
 
+## 2026-07-01 — Phase 3: Concrete capability providers
+- Question: For each Phase 0 capability domain (version control, issue tracker, documentation
+  search), which concrete service?
+- Decision: GitHub (version control), Jira (issue tracker), Confluence (documentation search).
+- Default assumed (if deferred): n/a
+- Notes: Domains confirmed; see next entry for why wiring is deferred.
+
+## 2026-07-01 — Phase 3: MCP server implementation
+- Question: Credential handling and read/write scope for the GitHub, Jira, and Confluence MCP
+  servers?
+- Decision: Deferred. These three servers will be added later as nested repos rather than
+  configured inline in this build's `.mcp.json`.
+- Default assumed (if deferred): `.mcp.json` stays the Phase 1 placeholder (empty
+  `mcpServers`); no credential/scope decision is locked yet — must be made when each nested
+  repo is actually wired in.
+- Notes: User confirmed no skill/agent/rule is needed merely for these servers to exist —
+  Claude Code discovers and calls MCP tools automatically. Dedicated rules/skills become
+  relevant only for workflow policy about *how* to use them (e.g. link Jira tickets in PRs),
+  which is deferred to whenever that policy is actually wanted, not built speculatively now.
+
 ## 2026-07-01 — Phase 2: Absolute prohibitions
 - Question: Never touch generated/vendored dirs / Never push to the default branch / Never
   rewrite git history / Never delete files without confirmation? (multi-select)
