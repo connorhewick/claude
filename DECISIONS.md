@@ -47,3 +47,22 @@ the default assumed because the user deferred.
 - Default assumed (if deferred): n/a
 - Notes: Roles default to Sonnet unless a specific role's Phase 6 interview calls for an
   override.
+
+## 2026-07-01 — Phase 1: Context source-of-truth
+- Question: AGENTS.md source with CLAUDE.md symlink / maintain CLAUDE.md directly / generate
+  CLAUDE.md from AGENTS.md?
+- Decision: Generate CLAUDE.md from AGENTS.md via a sync script (not a symlink)
+- Default assumed (if deferred): n/a
+- Notes: Chosen for distribution safety (Phase 0 = team distribution via plugin/marketplace,
+  where symlinks may not survive packaging/zipping). AGENTS.md is the single source of truth;
+  `.claude/scripts/generate-claude-md.sh` regenerates CLAUDE.md as a real file. This must be
+  re-run whenever AGENTS.md changes — documented in README, and worth revisiting for a
+  pre-commit/CI check in a later phase.
+
+## 2026-07-01 — Phase 1: Verification contract stages
+- Question: Which verification stages should exist in the interface now (multi-select), though
+  none are implemented?
+- Decision: All six — format, lint, typecheck, test, build, security
+- Default assumed (if deferred): n/a
+- Notes: Declared as named slots only; zero implementations in this build. Avoids a future
+  adapter author needing to extend the core interface for a standard stage.

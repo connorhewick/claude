@@ -1,0 +1,4 @@
+{
+  "//": "Guardrail hooks (Phase 4) and the verification Stop-gate (Phase 5) are wired here. Empty in this build.",
+  "hooks": {}
+}

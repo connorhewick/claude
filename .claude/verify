@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Verification contract entrypoint. Fails closed: any requested stage with no
+# adapter registered in verify.d/ is reported as "absent" and the overall exit
+# code is non-zero. See .claude/CONTRACT.md for the full interface spec.
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+verify_d="$root/.claude/verify.d"
+
+declared_stages=(format lint typecheck test build security)
+
+json_mode=0
+requested_stage="all"
+for arg in "$@"; do
+  case "$arg" in
+    --json) json_mode=1 ;;
+    all) requested_stage="all" ;;
+    *)
+      is_declared=0
+      for s in "${declared_stages[@]}"; do
+        [[ "$arg" == "$s" ]] && is_declared=1 && break
+      done
+      if [[ "$is_declared" -eq 0 ]]; then
+        echo "verify: unknown stage '$arg' (declared stages: ${declared_stages[*]})" >&2
+        exit 1
+      fi
+      requested_stage="$arg"
+      ;;
+  esac
+done
+
+if [[ "$requested_stage" == "all" ]]; then
+  stages=("${declared_stages[@]}")
+else
+  stages=("$requested_stage")
+fi
+
+overall_status=0
+results=()
+
+for stage in "${stages[@]}"; do
+  adapter="$verify_d/$stage"
+  if [[ -x "$adapter" ]]; then
+    if output="$("$adapter" 2>&1)"; then
+      status="pass"
+    else
+      status="fail"
+      overall_status=1
+    fi
+    [[ "$json_mode" -eq 0 ]] && printf '[%s] %s\n%s\n' "$status" "$stage" "$output"
+  else
+    status="absent"
+    overall_status=1
+    [[ "$json_mode" -eq 0 ]] && echo "no verification adapter registered for stage $stage"
+  fi
+  results+=("{ \"stage\": \"$stage\", \"status\": \"$status\" }")
+done
+
+if [[ "$json_mode" -eq 1 ]]; then
+  printf '['
+  for i in "${!results[@]}"; do
+    [[ "$i" -gt 0 ]] && printf ','
+    printf '%s' "${results[$i]}"
+  done
+  printf ']\n'
+fi
+
+exit "$overall_status"
