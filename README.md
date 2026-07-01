@@ -9,8 +9,8 @@ and `DECISIONS.md` for the full interview log.
 ## Layout
 
 ```
-AGENTS.md            portable source-of-truth context (generates CLAUDE.md)
-CLAUDE.md             generated — do not edit directly
+AGENTS.md            portable source-of-truth context
+CLAUDE.md             imports AGENTS.md via `@AGENTS.md` — do not duplicate rules here
 DECISIONS.md          append-only interview/decision log
 SCOPE.md              locked Phase 0 decisions + the language-agnostic invariant
 .mcp.json             cross-stack MCP servers only
@@ -20,7 +20,6 @@ SCOPE.md              locked Phase 0 decisions + the language-agnostic invariant
   hooks/*              deterministic guardrail scripts
   agents/*.md          language-agnostic role subagents
   skills/<name>/       reusable, language-agnostic procedures
-  scripts/             harness tooling (e.g. AGENTS.md -> CLAUDE.md generator)
   verify                verification contract entrypoint (fail-closed)
   verify.d/             adapter drop-in dir — EMPTY in this build
   CONTRACT.md            full spec of the verify interface
