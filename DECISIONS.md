@@ -278,6 +278,21 @@ the default assumed because the user deferred.
   a specific language/stack attaches only at the three documented seams, without editing the
   core.
 
+## 2026-07-01 — Post-Phase-9 bugfix: Stop-gate infinite loop in advise mode
+- Issue: `verify-gate.sh`'s `advise` mode set `hookSpecificOutput.additionalContext`
+  unconditionally whenever `verify` reported a non-pass result. That field is documented as
+  "feedback for Claude to act on" — it re-prompts a response, whose attempt to stop
+  re-triggers the same Stop hook, which sets `additionalContext` again, forever. This was
+  caught live: the same Stop-hook notification repeated multiple times in a row in this
+  session with no new user input.
+- Fix: `advise` mode now emits only `systemMessage` (informational, shown to the user, does
+  not solicit another turn) and omits `hookSpecificOutput.additionalContext` entirely.
+  `block` mode is unchanged — there, re-prompting via `additionalContext` alongside
+  `decision: "block"` is the intended behavior (an agent should keep acting on a hard block).
+- Notes: Re-verified both modes after the fix; `advise` now returns bare `{"systemMessage":
+  ...}` with no `hookSpecificOutput`, `block` unchanged. This hook is standalone-only (not
+  bundled in `plugin/`), so no plugin rebuild was needed.
+
 ## 2026-07-01 — Phase 2: Absolute prohibitions
 - Question: Never touch generated/vendored dirs / Never push to the default branch / Never
   rewrite git history / Never delete files without confirmation? (multi-select)

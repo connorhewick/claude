@@ -36,13 +36,13 @@ if [[ "$mode" == "block" ]]; then
     }
   }'
 else
-  jq -n --arg msg "$summary" '{
-    "systemMessage": $msg,
-    "hookSpecificOutput": {
-      "hookEventName": "Stop",
-      "additionalContext": $msg
-    }
-  }'
+  # Deliberately omit hookSpecificOutput.additionalContext here: that field is
+  # documented as feedback for Claude to act on, which re-prompts a response —
+  # and a re-prompted response that tries to stop again re-triggers this same
+  # hook, looping forever. systemMessage alone is informational (shown to the
+  # user) without soliciting another turn, which is what "advise, don't block"
+  # actually requires.
+  jq -n --arg msg "$summary" '{ "systemMessage": $msg }'
 fi
 
 exit 0
