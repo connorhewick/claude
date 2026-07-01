@@ -98,6 +98,22 @@ one, start a fresh session and dry-run invoke it (e.g. via the `Agent` tool with
 `subagent_type` set to the role name) to confirm its actual tool access matches the
 frontmatter before relying on it.
 
+## Skills
+
+Three reusable, stack-independent procedures in `.claude/skills/`:
+
+| Skill | Invocation | Purpose |
+|---|---|---|
+| `spec-first-planning` | Auto or `/spec-first-planning` | Turn a goal into a spec + checklist (delegates to the `planner` subagent) before implementation starts. |
+| `write-adr` | Auto or `/write-adr` | Write an ADR at `docs/adr/NNNN-short-title.md` for a significant/hard-to-reverse decision, using a lightweight context/decision/consequences template. |
+| `prepare-pr` | Manual only (`/prepare-pr`) | Run `.claude/verify`, review the full diff/commit range, and draft a PR title/body — never pushes or opens the PR itself. |
+
+A fourth candidate, a "session bootstrap / load-context" skill, was considered and declined:
+`DECISIONS.md` isn't auto-loaded and will keep growing, but since this harness is for team
+distribution, a personal/local mechanism (Claude's auto memory) can't substitute for it, and a
+dedicated skill for it wasn't judged worth the added surface area yet. Revisit if a fresh
+session repeatedly needs to re-derive the same context.
+
 ## Status
 
 This harness is under active build, phase by phase, per the interview-gated implementation

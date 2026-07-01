@@ -198,6 +198,22 @@ the default assumed because the user deferred.
   session and dry-run invoke each role via the `Agent` tool to confirm live tool-scope before
   relying on it in production use.
 
+## 2026-07-01 — Phase 7: Procedures to build
+- Question: Which stack-independent procedures should become skills (multi-select) — session
+  bootstrap/load-context / spec-first feature planning / prepare-PR / write-ADR / other?
+- Decision: spec-first-planning, write-adr, prepare-pr. Session bootstrap/load-context was
+  discussed and declined.
+- Default assumed (if deferred): n/a
+- Notes: On the bootstrap/load-context question, clarified that Claude Code's auto memory
+  (`MEMORY.md`) is per-machine/personal and not team-shared, so it can't substitute for a
+  committed procedure — but the user still chose not to build a dedicated skill for it in this
+  pass. `.claude/rules/docs.md`'s reference to a Write-ADR procedure is now resolved by the
+  `write-adr` skill (previously a dangling reference). Verified SKILL.md frontmatter schema
+  (`name`, `description`, `disable-model-invocation`, `allowed-tools`, `argument-hint`) against
+  current docs before writing, per Operating Rule 6. Confirmed skills — unlike subagents — load
+  on demand mid-session: each new skill appeared as available immediately after being written,
+  without a session restart.
+
 ## 2026-07-01 — Phase 2: Absolute prohibitions
 - Question: Never touch generated/vendored dirs / Never push to the default branch / Never
   rewrite git history / Never delete files without confirmation? (multi-select)
