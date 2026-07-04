@@ -6,6 +6,80 @@ guardrails, verification, and orchestration, packaged for reuse across projects.
 The harness core is **language- and stack-agnostic**. See `SCOPE.md` for the locked decisions
 and `DECISIONS.md` for the full interview log.
 
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Layout](#layout)
+- [Verification contract](#verification-contract)
+- [Capabilities](#capabilities)
+- [Guardrails](#guardrails)
+- [Verification Stop-gate](#verification-stop-gate)
+- [Orchestration](#orchestration)
+- [Skills](#skills)
+- [Packaging & Distribution](#packaging--distribution)
+- [Handoff — where a future language/stack task plugs in](#handoff--where-a-future-languagestack-task-plugs-in)
+- [Status](#status)
+
+## Architecture
+
+How the pieces fit together at runtime — a session is wrapped by deterministic guardrails on
+the way in (tool calls) and a fail-closed verification gate on the way out (Stop):
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────┐
+│                                Claude Code session                                 │
+│ startup context: CLAUDE.md ─@import─► AGENTS.md + .claude/rules/*.md (path-scoped) │
+└─────────┬──────────────────────────────┬─────────────────────────────┬─────────────┘
+          │ tool calls                   │ delegates                   │ Stop event
+          ▼                              ▼                             ▼
+┌───────────────────────┐   ┌─────────────────────────┐   ┌─────────────────────────┐
+│ PreToolUse guardrails │   │      Orchestration      │   │     verify-gate.sh      │
+│ guard-edits.sh        │   │ agents/: planner,       │   │ Stop-gate hook: runs    │
+│ guard-bash.sh         │   │  explorer, reviewer,    │   │ .claude/verify --json   │
+│ guard-branch-name.sh  │   │  verifier, doc-writer   │   │ on every Stop event     │
+│ HARNESS_GUARDRAIL_MODE│   │ skills/: spec-first-    │   │ HARNESS_VERIFY_STOP_    │
+│ advisory | blocking   │   │  planning, write-adr,   │   │ MODE: advise | block    │
+│                       │   │  prepare-pr             │   │                         │
+└─────────┬─────────────┘   └─────────────────────────┘   └────────────┬────────────┘
+          │ allow / deny                                               │ runs
+          ▼                                                            ▼
+┌───────────────────────┐                                 ┌─────────────────────────┐
+│       Workspace       │                                 │     .claude/verify      │
+│     (repo files)      │                                 │ fail-closed arbiter of  │
+│                       │                                 │ "done"                  │
+└───────────────────────┘                                 └────────────┬────────────┘
+                                                                       │ one adapter per stage
+                                                                       ▼
+                                                          ╔═════════════════════════╗
+                                                          ║   verify.d/ adapters    ║
+                                                          ║ format lint typecheck   ║
+                                                          ║ test build security     ║
+                                                          ║ empty in this build —   ║
+                                                          ║ every stage fails closed║
+                                                          ╚═════════════════════════╝
+
+Distribution (build-time, outside the runtime loop):
+  scripts/build-plugin.sh ──► plugin/ ──► marketplace install  (skills + agents + hooks only)
+  scripts/bootstrap.sh    ──► full skeleton copy into a target project  (incl. verify + rules)
+
+Legend:
+  ┌───┐ = harness component (this repo)   ╔═══╗ = per-project seam (drop-in adapters)
+  ──►   = runtime flow                    a | b = mode-switch values (env block, settings.json)
+```
+
+Components:
+
+- **PreToolUse guardrails** — deterministic hooks that allow or deny each `Edit`/`Write`/`Bash`
+  call before it executes (see [Guardrails](#guardrails)).
+- **Orchestration** — role subagents and skills the session delegates to; the `verifier`
+  subagent invokes `.claude/verify` on demand (see [Orchestration](#orchestration) and
+  [Skills](#skills)).
+- **verify-gate.sh** — Stop-event hook that runs the verification contract before a session can
+  finish (see [Verification Stop-gate](#verification-stop-gate)).
+- **`.claude/verify` / `verify.d/`** — the fail-closed contract and its per-project stage
+  adapters; the primary seam where a future stack plugs in (see
+  [Verification contract](#verification-contract) and [Handoff](#handoff--where-a-future-languagestack-task-plugs-in)).
+
 ## Layout
 
 ```
