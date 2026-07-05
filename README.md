@@ -235,7 +235,7 @@ also on the [Roadmap](#roadmap-missing-cycle-components).
 
 ## Skills
 
-Five reusable, stack-independent procedures in `.claude/skills/`:
+Six reusable, stack-independent procedures in `.claude/skills/`:
 
 | Skill | Invocation | Purpose |
 |---|---|---|
@@ -244,6 +244,7 @@ Five reusable, stack-independent procedures in `.claude/skills/`:
 | `write-adr` | Auto or `/write-adr` | Write an ADR at `docs/adr/NNNN-short-title.md` for a significant/hard-to-reverse decision, using a lightweight context/decision/consequences template. |
 | `prepare-pr` | Manual only (`/prepare-pr`) | Run `.claude/verify`, check for doc drift via `doc-sync` (report), review the full diff/commit range, and draft a PR title/body — never pushes or opens the PR itself. |
 | `doc-sync` | Manual (`/doc-sync`) or the pre-push gate | Run the five role agents as a team to detect and fix drift between the code and the files in `.claude/sync-paths`. `fix` mode applies doc edits; `report` mode (read-only) backs the pre-push gate and `prepare-pr`. |
+| `split-commits` | Auto or `/split-commits` | Break an uncommitted tree that spans multiple concerns into one atomic commit per concern (path-level, with hunk-level splitting via `git apply --cached --unidiff-zero` when a file mixes concerns). Proposes a Conventional-Commit plan and commits each group only after approval — never pushes. |
 
 Another candidate, a "session bootstrap / load-context" skill, was considered and declined:
 `DECISIONS.md` isn't auto-loaded and will keep growing, but since this harness is for team

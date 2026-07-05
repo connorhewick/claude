@@ -23,6 +23,10 @@ this list.
 
 - Use Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, …) for
   every commit message.
+- When committing work that spans more than one distinct concern, split it into one logical,
+  atomic commit per concern (the `split-commits` skill / `/split-commits`) rather than a single
+  mixed commit. Always present the commit plan and get approval before committing — never
+  auto-commit.
 - Every pull request body must follow the project's PR template.
 - Never push directly to the default branch. All changes go through a branch and a pull
   request.
