@@ -39,7 +39,7 @@ the way in (tool calls) and a fail-closed verification gate on the way out (Stop
 │ guard-branch-name.sh  │   │  verifier, doc-writer   │   │ on every Stop event     │
 │ HARNESS_GUARDRAIL_MODE│   │ skills/: spec-first-    │   │ HARNESS_VERIFY_STOP_    │
 │ advisory | blocking   │   │  planning, write-adr,   │   │ MODE: advise | block    │
-│                       │   │  prepare-pr             │   │                         │
+│                       │   │  prepare-pr, write-prd  │   │                         │
 └─────────┬─────────────┘   └─────────────────────────┘   └────────────┬────────────┘
           │ allow / deny                                               │ runs
           ▼                                                            ▼
@@ -174,10 +174,11 @@ frontmatter before relying on it.
 
 ## Skills
 
-Three reusable, stack-independent procedures in `.claude/skills/`:
+Four reusable, stack-independent procedures in `.claude/skills/`:
 
 | Skill | Invocation | Purpose |
 |---|---|---|
+| `write-prd` | Auto or `/write-prd` | Interview the user to define a new product or major/minor feature, write a PRD at `docs/prd/NNNN-slug.md`, then hand off to `spec-first-planning`. Runs before planning — decides *what* to build and *why*. |
 | `spec-first-planning` | Auto or `/spec-first-planning` | Turn a goal into a spec + checklist (delegates to the `planner` subagent) before implementation starts. |
 | `write-adr` | Auto or `/write-adr` | Write an ADR at `docs/adr/NNNN-short-title.md` for a significant/hard-to-reverse decision, using a lightweight context/decision/consequences template. |
 | `prepare-pr` | Manual only (`/prepare-pr`) | Run `.claude/verify`, review the full diff/commit range, and draft a PR title/body — never pushes or opens the PR itself. |
