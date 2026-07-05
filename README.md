@@ -15,6 +15,7 @@ and `DECISIONS.md` for the full interview log.
 - [Guardrails](#guardrails)
 - [Verification Stop-gate](#verification-stop-gate)
 - [Orchestration](#orchestration)
+- [Running agents in parallel](#running-agents-in-parallel)
 - [Skills](#skills)
 - [Agentic development cycle](#agentic-development-cycle)
 - [Roadmap: missing cycle components](#roadmap-missing-cycle-components)
@@ -173,6 +174,53 @@ Haiku/Sonnet/Opus depending on token budget, not assume one.
 one, start a fresh session and dry-run invoke it (e.g. via the `Agent` tool with
 `subagent_type` set to the role name) to confirm its actual tool access matches the
 frontmatter before relying on it.
+
+## Running agents in parallel
+
+The [Agentic development cycle](#agentic-development-cycle) runs one stage at a time, but the
+individual stages don't have to be serial. To deliver a feature faster, decompose it into
+units of work that have **no ordering dependency on each other** and run them concurrently: in
+a single turn, the session issues several `Agent` calls at once and they execute in parallel
+instead of back-to-back.
+
+This is done by hand in the main session today — a skill that automates the coordination is the
+**Team orchestration** item on the [Roadmap](#roadmap-missing-cycle-components). The primitives
+it would build on already exist:
+
+- **Fan-out in one turn.** Multiple `Agent` calls in the same message run in parallel. Use it
+  when the parts are genuinely independent — investigating three areas of the codebase,
+  implementing two non-overlapping slices, or reviewing a diff while docs are drafted. Keep
+  dependent steps (plan → implement → verify) sequential; parallelizing them only causes rework.
+- **Worktree isolation for writers.** Read-only agents (`explorer`, `reviewer`) can share the
+  workspace safely. Any agent that *edits* files should get its own git worktree
+  (`isolation: "worktree"` on the `Agent` call) so concurrent edits never clobber each other;
+  the worktree is auto-cleaned if nothing changed.
+- **Background execution.** Long or noisy agents run with `run_in_background` so the main
+  session keeps coordinating and isn't blocked; you're notified as each finishes. Offloading
+  research and parallel analysis this way also keeps the orchestrating context window focused.
+
+**Fan-out / fan-in shape.** Decompose with `planner` into slices with clear contracts (which
+files, which interface each owns) so parallel workers don't collide; fan out one agent per
+slice; then converge and gate the combined result with `reviewer` (diff review) and `verifier`
+(runs `.claude/verify`) before declaring done.
+
+```
+                     ┌─ explorer ─────────┐
+   planner  ─────►   ├─ worker · slice A ─┤ ─►  [walkthrough + interview]  ─►  reviewer ─► verifier ─► done
+ (decompose into     └─ worker · slice B ─┘         human in the loop            fan-in gate
+  independent slices)  parallel · worktree-isolated
+```
+
+The `[walkthrough + interview]` step is the required human-in-the-loop checkpoint before
+converging — the session walks you through what each agent produced and interviews you for the
+decisions only you can make. That behavior is defined in this repo's `CLAUDE.md` and satisfies
+the "a human has reviewed and approved" clause of the definition of done (`AGENTS.md`).
+
+The parallel *implementation* workers are the one gap: the five core agents cover
+planning/exploration/review/verification/docs, but a stack-specialist implementer for the slices
+is a [Handoff](#handoff--where-a-future-languagestack-task-plugs-in) seam (use `general-purpose`
+in the interim). Cap the fan-out to stay within the token budget — per-role model tiering is
+also on the [Roadmap](#roadmap-missing-cycle-components).
 
 ## Skills
 
