@@ -367,3 +367,14 @@ the default assumed because the user deferred.
 - Default assumed (if deferred): n/a — all decisions were answered in the interview.
 - Notes: This is the SHIP-stage counterpart to `doc-sync`: where doc-sync keeps docs truthful,
   split-commits keeps history legible. Patches are written to `mktemp`, never inside the repo.
+## 2026-07-05 — Keep an open PR's title/description in sync with its branch
+- Question: How should the harness keep a PR's title and description accurate as the branch
+  keeps changing after the PR is opened?
+- Decision: Add a Version-control convention in AGENTS.md (the single source of truth;
+  CLAUDE.md inherits it via the `@AGENTS.md` import): after pushing new commits to a branch
+  with an open PR, update the PR title/body via `gh pr edit` so both always reflect the full
+  current branch state. A followed convention, not an automated hook.
+- Default assumed (if deferred): n/a
+- Notes: Chosen as an instruction over a git/CI hook to stay stack-agnostic and reuse the `gh`
+  CLI the PR flow already depends on. CLAUDE.md needs no separate edit — it imports AGENTS.md,
+  so the convention reaches both files from one place (no duplication, no drift).

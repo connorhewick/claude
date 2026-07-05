@@ -28,6 +28,11 @@ this list.
   mixed commit. Always present the commit plan and get approval before committing — never
   auto-commit.
 - Every pull request body must follow the project's PR template.
+- Keep an open PR's title and description accurate as its branch evolves. After pushing new
+  commits to a branch that already has an open PR, update the PR (`gh pr edit <number>
+  --title ... --body ...`) so the title and body always describe the full current state of the
+  branch — every change on it — not just what existed when the PR was opened. A stale PR
+  description is a review hazard.
 - Never push directly to the default branch. All changes go through a branch and a pull
   request.
 
