@@ -26,7 +26,7 @@ the implementation source.
 run.sh
   1. setup    mktemp workspace -> git init -> scripts/bootstrap.sh -> drop in REQUIREMENTS.md
   2. agent    claude -p "build what REQUIREMENTS.md describes; conventions in AGENTS.md"
-  3. grade    acceptance.sh  -> invokes todo.py, asserts R1-R7, prints a scorecard
+  3. grade    acceptance.sh  -> invokes todo.py, asserts each requirement, prints a scorecard
   4. report   whether the session registered verify.d/ adapters (evidence, not the verdict)
 ```
 
@@ -60,15 +60,15 @@ tests/acceptance/acceptance.sh /path/to/project
 Each requirement is checked independently in its own fresh state directory, so one failure
 never cascades into another:
 
-| Req | Behavior asserted |
+| Check | Behavior asserted |
 |---|---|
-| R1 | `add "text"` records an item and prints its id (ids start at 1); exit 0 |
-| R2 | `list` shows pending items with ids and text |
-| R3 | `done <id>` completes an item; it leaves the pending list |
-| R4 | `list --all` includes completed items; plain `list` does not |
-| R5 | State persists across separate process invocations, via `./todo.json` |
-| R6 | `done` on an unknown id exits non-zero, writes to stderr, leaves state intact |
-| R7 | No args / unknown command print usage and exit non-zero |
+| `add-prints-id` | `add "text"` records an item and prints its id (ids start at 1); exit 0 |
+| `list-shows-pending` | `list` shows pending items with ids and text |
+| `done-hides-completed` | `done <id>` completes an item; it leaves the pending list |
+| `list-all-includes-completed` | `list --all` includes completed items; plain `list` does not |
+| `state-persists-across-runs` | State persists across separate process invocations, via `./todo.json` |
+| `unknown-id-fails-safely` | `done` on an unknown id exits non-zero, writes to stderr, leaves state intact |
+| `usage-on-bad-invocation` | No args / unknown command print usage and exit non-zero |
 
 The grader is tolerant of cosmetic output variation (it greps for ids and text rather than
 demanding exact formatting) but strict on behavior — exit codes, persistence, and stderr on
@@ -102,6 +102,6 @@ separate question from whether the harness's own arbiter-of-done seam was wired 
 | File | Role |
 |---|---|
 | `run.sh` | Orchestrator: setup, agent run, grade, report |
-| `acceptance.sh` | Black-box grader (R1–R7 + scorecard); reusable on any `todo.py` |
+| `acceptance.sh` | Black-box grader (seven behavior checks + scorecard); reusable on any `todo.py` |
 | `fixtures/REQUIREMENTS.md` | The user-voice requirements handed to the session |
 | `fixtures/reference/todo.py` | Known-good implementation, used only by `--self-test` |

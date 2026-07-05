@@ -13,20 +13,20 @@ sessions, so nothing can get lost between runs.
 
 ## Requirements
 
-- **R1 — Add.** `python3 todo.py add "Buy milk"` records a new pending item and prints the
-  new item's id. Ids are positive integers assigned sequentially starting at 1. Exits 0.
-- **R2 — List pending.** `python3 todo.py list` prints each pending item with its id and
+- **add-prints-id.** `python3 todo.py add "Buy milk"` records a new pending item and prints
+  the new item's id. Ids are positive integers assigned sequentially starting at 1. Exits 0.
+- **list-shows-pending.** `python3 todo.py list` prints each pending item with its id and
   text, one per line. Completed items do not appear. Exits 0.
-- **R3 — Complete.** `python3 todo.py done <id>` marks that item completed and exits 0.
+- **done-hides-completed.** `python3 todo.py done <id>` marks that item completed and exits 0.
   The item no longer appears in `list`.
-- **R4 — List all.** `python3 todo.py list --all` prints every item, pending and completed,
-  with completed items visibly marked as done.
-- **R5 — Persistence.** Items added in one invocation are visible to later invocations —
-  state genuinely survives the process exiting.
-- **R6 — Errors.** `python3 todo.py done <id>` for an id that doesn't exist exits non-zero,
-  prints an error message to stderr, and leaves existing items untouched.
-- **R7 — Usage.** Running with no arguments, or with an unknown command, prints usage
-  information (the word "usage" and the available commands) and exits non-zero.
+- **list-all-includes-completed.** `python3 todo.py list --all` prints every item, pending and
+  completed, with completed items visibly marked as done.
+- **state-persists-across-runs.** Items added in one invocation are visible to later
+  invocations — state genuinely survives the process exiting.
+- **unknown-id-fails-safely.** `python3 todo.py done <id>` for an id that doesn't exist exits
+  non-zero, prints an error message to stderr, and leaves existing items untouched.
+- **usage-on-bad-invocation.** Running with no arguments, or with an unknown command, prints
+  usage information (the word "usage" and the available commands) and exits non-zero.
 
 ## Definition of done
 

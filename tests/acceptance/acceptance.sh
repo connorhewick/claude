@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Black-box grader for fixtures/REQUIREMENTS.md. Invokes the produced software
-# (todo.py) and asserts each requirement R1-R7 by observable behavior only:
+# (todo.py) and asserts each requirement by observable behavior only:
 # stdout/stderr, exit codes, and the state file. Never reads the implementation.
 #
 # Usage: acceptance.sh <workspace-dir>   (dir containing todo.py)
@@ -48,45 +48,47 @@ has_number() { # <number> <<< text
 
 grade() {
   if [[ ! -f "$app" ]]; then
-    for r in R1 R2 R3 R4 R5 R6 R7; do
+    for r in add-prints-id list-shows-pending done-hides-completed \
+             list-all-includes-completed state-persists-across-runs \
+             unknown-id-fails-safely usage-on-bad-invocation; do
       record "$r" FAIL "todo.py not found in workspace"
     done
     return
   fi
 
-  # R1 — add prints the new item's id (first id is 1), exit 0
+  # add-prints-id — add prints the new item's id (first id is 1), exit 0
   fresh
   out="$(todo add "Buy milk" 2>/dev/null)"; rc=$?
   if [[ $rc -eq 0 ]] && has_number 1 <<<"$out"; then
-    record R1 pass "add records an item and prints its id"
+    record add-prints-id pass "add records an item and prints its id"
   else
-    record R1 FAIL "add: exit=$rc output='$out' (expected exit 0 and id 1)"
+    record add-prints-id FAIL "add: exit=$rc output='$out' (expected exit 0 and id 1)"
   fi
 
-  # R2 — list shows pending items with ids and text
+  # list-shows-pending — list shows pending items with ids and text
   fresh
   todo add "Buy milk" >/dev/null 2>&1
   todo add "Walk dog" >/dev/null 2>&1
   out="$(todo list 2>/dev/null)"; rc=$?
   if [[ $rc -eq 0 ]] && grep -q "Buy milk" <<<"$out" && grep -q "Walk dog" <<<"$out" \
       && has_number 1 <<<"$out" && has_number 2 <<<"$out"; then
-    record R2 pass "list shows pending items with ids"
+    record list-shows-pending pass "list shows pending items with ids"
   else
-    record R2 FAIL "list: exit=$rc output='$out' (expected both items with ids 1 and 2)"
+    record list-shows-pending FAIL "list: exit=$rc output='$out' (expected both items with ids 1 and 2)"
   fi
 
-  # R3 — done removes the item from the pending list, exit 0
+  # done-hides-completed — done removes the item from the pending list, exit 0
   fresh
   todo add "Buy milk" >/dev/null 2>&1
   todo done 1 >/dev/null 2>&1; rc=$?
   out="$(todo list 2>/dev/null)"
   if [[ $rc -eq 0 ]] && ! grep -q "Buy milk" <<<"$out"; then
-    record R3 pass "done completes an item; it leaves the pending list"
+    record done-hides-completed pass "done completes an item; it leaves the pending list"
   else
-    record R3 FAIL "done 1: exit=$rc; list afterwards='$out' (item should be gone)"
+    record done-hides-completed FAIL "done 1: exit=$rc; list afterwards='$out' (item should be gone)"
   fi
 
-  # R4 — list --all includes completed items; plain list does not
+  # list-all-includes-completed — list --all includes completed items; plain list does not
   fresh
   todo add "Alpha task" >/dev/null 2>&1
   todo add "Beta task" >/dev/null 2>&1
@@ -95,41 +97,41 @@ grade() {
   pending_out="$(todo list 2>/dev/null)"
   if [[ $rc -eq 0 ]] && grep -q "Alpha task" <<<"$all_out" && grep -q "Beta task" <<<"$all_out" \
       && ! grep -q "Alpha task" <<<"$pending_out" && grep -q "Beta task" <<<"$pending_out"; then
-    record R4 pass "list --all includes completed items"
+    record list-all-includes-completed pass "list --all includes completed items"
   else
-    record R4 FAIL "list --all='$all_out' list='$pending_out' (completed item only in --all)"
+    record list-all-includes-completed FAIL "list --all='$all_out' list='$pending_out' (completed item only in --all)"
   fi
 
-  # R5 — state survives across separate process invocations, via todo.json in CWD
+  # state-persists-across-runs — state survives separate process invocations, via todo.json in CWD
   fresh
   todo add "Persist me" >/dev/null 2>&1
   out="$(todo list 2>/dev/null)"
   if grep -q "Persist me" <<<"$out" && [[ -f "$state_dir/todo.json" ]]; then
-    record R5 pass "state persists across invocations in ./todo.json"
+    record state-persists-across-runs pass "state persists across invocations in ./todo.json"
   else
-    record R5 FAIL "second process saw '$out'; todo.json present: $(test -f "$state_dir/todo.json" && echo yes || echo no)"
+    record state-persists-across-runs FAIL "second process saw '$out'; todo.json present: $(test -f "$state_dir/todo.json" && echo yes || echo no)"
   fi
 
-  # R6 — done on an unknown id: non-zero exit, message on stderr, state untouched
+  # unknown-id-fails-safely — done on an unknown id: non-zero exit, message on stderr, state untouched
   fresh
   todo add "Keep me" >/dev/null 2>&1
   err="$(todo done 99 2>&1 >/dev/null)"; rc=$?
   out="$(todo list 2>/dev/null)"
   if [[ $rc -ne 0 ]] && [[ -n "$err" ]] && grep -q "Keep me" <<<"$out"; then
-    record R6 pass "unknown id fails loudly without corrupting state"
+    record unknown-id-fails-safely pass "unknown id fails loudly without corrupting state"
   else
-    record R6 FAIL "done 99: exit=$rc stderr='$err'; list='$out' (expected non-zero, stderr message, item intact)"
+    record unknown-id-fails-safely FAIL "done 99: exit=$rc stderr='$err'; list='$out' (expected non-zero, stderr message, item intact)"
   fi
 
-  # R7 — no args and unknown command both print usage and exit non-zero
+  # usage-on-bad-invocation — no args and unknown command both print usage and exit non-zero
   fresh
   out1="$(todo 2>&1)"; rc1=$?
   out2="$(todo frobnicate 2>&1)"; rc2=$?
   if [[ $rc1 -ne 0 ]] && grep -qi "usage" <<<"$out1" \
       && [[ $rc2 -ne 0 ]] && grep -qi "usage" <<<"$out2"; then
-    record R7 pass "no args / unknown command print usage, exit non-zero"
+    record usage-on-bad-invocation pass "no args / unknown command print usage, exit non-zero"
   else
-    record R7 FAIL "no-args: exit=$rc1 '$out1'; unknown: exit=$rc2 '$out2'"
+    record usage-on-bad-invocation FAIL "no-args: exit=$rc1 '$out1'; unknown: exit=$rc2 '$out2'"
   fi
 }
 
