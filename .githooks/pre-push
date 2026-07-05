@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# Pre-push doc-sync gate. Runs the doc-sync orchestrator (report mode) over the
+# commits being pushed and blocks the push if the files in .claude/sync-paths
+# have drifted from the code. See .claude/skills/doc-sync/SKILL.md.
+#
+# Mode via HARNESS_DOCSYNC_MODE (mirrors the harness's other *_MODE flags):
+#   block   (default) — DRIFT aborts the push; fix docs (/doc-sync) and re-push.
+#   advise            — DRIFT prints a warning but the push proceeds.
+#   off               — skip the gate entirely.
+#
+# Fail-open on tooling, fail-closed on drift: if `claude` is unavailable or the
+# run errors, the push is allowed (a missing tool must never wedge every push).
+set -uo pipefail
+
+mode="${HARNESS_DOCSYNC_MODE:-block}"
+[[ "$mode" == "off" ]] && exit 0
+
+root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$root" || exit 0
+
+zero="0000000000000000000000000000000000000000"
+
+# Derive the range being pushed from git's stdin (one line per ref:
+# <local ref> <local sha> <remote ref> <remote sha>). Pick the widest range.
+range=""
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [[ "$local_sha" == "$zero" ]] && continue          # branch deletion — nothing to audit
+  if [[ "$remote_sha" == "$zero" ]]; then            # new branch on the remote
+    base="$(git merge-base "$local_sha" origin/HEAD 2>/dev/null || true)"
+    range="${base:+$base..}$local_sha"
+  else
+    range="$remote_sha..$local_sha"
+  fi
+done
+
+# No refs on stdin (or nothing to audit) → let the push through.
+[[ -z "$range" ]] && exit 0
+
+if ! command -v claude >/dev/null 2>&1; then
+  echo "doc-sync: 'claude' not found on PATH — skipping the doc-sync gate (fail-open)." >&2
+  exit 0
+fi
+
+echo "doc-sync: auditing docs against $range (mode=$mode)…" >&2
+
+logfile="$root/.claude/doc-sync.log"
+prompt="Run the doc-sync orchestrator defined in .claude/skills/doc-sync/SKILL.md in REPORT mode
+over the range ${range}. This is a READ-ONLY audit: do not create or edit any file. End your
+output with one line — 'DOC_SYNC_RESULT: PASS' if every file in .claude/sync-paths is accurate
+against the code, or 'DOC_SYNC_RESULT: DRIFT' if any has drifted — followed by the findings."
+
+# Read-only tool allowlist (no Edit/Write): a report-mode run cannot modify the repo, and the
+# read-only role agents still work. Bounded so a hung agent can't wedge the push forever.
+runner=(claude -p "$prompt" --allowedTools "Task Read Grep Glob Bash")
+if command -v timeout >/dev/null 2>&1; then
+  timeout 600 "${runner[@]}" > "$logfile" 2>&1
+else
+  "${runner[@]}" > "$logfile" 2>&1
+fi
+rc=$?
+
+if [[ $rc -ne 0 ]]; then
+  echo "doc-sync: run did not complete cleanly (rc=$rc) — fail-open, push allowed (see $logfile)." >&2
+  exit 0
+fi
+
+# Fail-closed only on an explicit DRIFT verdict; PASS or an absent verdict allows the push.
+if grep -q '^DOC_SYNC_RESULT: DRIFT' "$logfile"; then
+  echo "" >&2
+  echo "doc-sync: documentation drift detected:" >&2
+  sed 's/^/  /' "$logfile" >&2 2>/dev/null || true
+  if [[ "$mode" == "advise" ]]; then
+    echo "doc-sync: advise mode — push proceeding despite drift. Run /doc-sync to fix." >&2
+    exit 0
+  fi
+  echo "doc-sync: push blocked. Run '/doc-sync' to fix the docs, commit, and push again." >&2
+  echo "          (bypass once: 'HARNESS_DOCSYNC_MODE=advise git push', or 'git push --no-verify'.)" >&2
+  exit 1
+fi
+
+echo "doc-sync: docs in sync." >&2
+exit 0

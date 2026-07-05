@@ -1,0 +1,20 @@
+# Files Claude must keep in sync with the code and with each other.
+#
+# One repo-relative path per line; blank lines and lines starting with `#` are
+# ignored. This is the authoritative roster — the "what". It is honored two ways:
+#
+#   1. During normal work: if a change touches what one of these files documents,
+#      update that file in the same change (don't let it drift).
+#   2. By the doc-sync orchestrator (.claude/skills/doc-sync) and the pre-push
+#      gate (.githooks/pre-push), which audit each listed file against the code.
+#
+# Per-file scope — what each file tracks or which sibling it mirrors — is the
+# "how", declared in .claude/doc-sync.manifest. A path listed here with no
+# manifest entry defaults to tracks:** (audited against the whole repo).
+
+README.md
+DECISIONS.md
+AGENTS.md
+CLAUDE.md
+SCOPE.md
+VALIDATION.md
