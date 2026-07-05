@@ -340,3 +340,30 @@ the default assumed because the user deferred.
   (plugins configure Claude Code, not git), so the gate is bootstrap-only. This is the harness's
   first coordinated-team orchestration; generalizing it to any stage set remains the roadmap's
   "Team orchestration" item.
+## 2026-07-05 — Automatic commit-chunking (split-commits)
+- Question: How should the harness break a working tree that spans multiple tasks into
+  sensible commits, and how automatic should it be?
+- Decision: A `split-commits` skill (`.claude/skills/split-commits`) clusters uncommitted
+  changes by concern, proposes an ordered Conventional-Commit plan, and — only after explicit
+  approval — stages and commits each group. It never pushes and never commits without approval.
+  A rule in `AGENTS.md` (Version control) makes it the default: any commit that spans more than
+  one concern is split rather than made as one mixed commit.
+- Sub-decisions (from the interview):
+  - **Split depth:** path-level grouping by default; **hunk-level splitting when one file mixes
+    concerns**. Since interactive staging (`git add -p`/`-i`) is unavailable in this harness,
+    hunk selection is done non-interactively via a zero-context patch: `git diff -U0 -- <file>`
+    → keep only the target concern's `@@` blocks → `git apply --cached --unidiff-zero`.
+    Validated in a scratch repo, including the failure mode: default 3-line context coalesces
+    changes within ~6 lines into one hunk, so `-U0` is required to separate them. When even
+    `-U0` can't split interleaved concerns, the file is committed whole in one group and
+    flagged — never hand-edit a diff to force a split.
+  - **Execution:** the skill **executes the commits after approval** (stages each group and
+    commits), rather than only emitting commands. Guarded by an explicit approval gate to honor
+    "never auto-commit", and fully undoable via `git reset --soft <START>` (commits are local
+    and unpushed).
+  - **Safety rails:** refuses to run on the default branch (branch + PR flow required) or during
+    a rebase/merge; records the pre-split HEAD; commits the staged subset only (never
+    `git commit -a`).
+- Default assumed (if deferred): n/a — all decisions were answered in the interview.
+- Notes: This is the SHIP-stage counterpart to `doc-sync`: where doc-sync keeps docs truthful,
+  split-commits keeps history legible. Patches are written to `mktemp`, never inside the repo.
