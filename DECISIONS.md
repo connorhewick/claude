@@ -303,3 +303,40 @@ the default assumed because the user deferred.
   considered and explicitly not selected as hard guardrails in this build. They can be added
   later by extending `.claude/hooks/guard-bash.sh` / `.claude/hooks/guard-edits.sh` (Phase 4)
   without touching the core contract.
+
+## 2026-07-04 — doc-sync orchestrator + pre-push gate
+- Question: How should the harness keep README and other "always in sync" files accurate as
+  the code changes — what triggers it, and what does it do on drift?
+- Decision: A `doc-sync` skill (`.claude/skills/doc-sync`) orchestrates the five existing role
+  agents (explorer → verifier → planner → doc-writer → reviewer) as a team over a diff range,
+  auditing the files listed in `.claude/sync-paths` against the code. It has two triggers — a
+  tracked git `pre-push` hook (`.githooks/pre-push`, enabled via `core.hooksPath`) and a step
+  inside the `prepare-pr` skill — and two modes: `report` (read-only) and `fix` (applies doc
+  edits).
+- Sub-decisions (from the interview):
+  - Pre-push behavior: run the full team synchronously and **block** the push on drift
+    (`HARNESS_DOCSYNC_MODE=block`, default), mirroring the `advise|block` shape of the other
+    `*_MODE` flags. The user accepted the per-push latency of a full team run; `advise` and
+    `off` are available to dial it down without editing the hook.
+  - The hook run is **report-only and read-only**: the team is invoked with a no-Edit/no-Write
+    tool allowlist (`--allowedTools "Task Read Grep Glob Bash"`), so a pre-push run cannot modify
+    the repo — closing the prompt-injection-to-edit path rather than relying on the prompt. It
+    emits a `DOC_SYNC_RESULT: PASS|DRIFT` verdict line that the hook greps; the hook captures the
+    output to `.claude/doc-sync.log` (git-ignored) and blocks only on `DRIFT`. Actual doc
+    rewrites happen in-session (`/doc-sync`, fix mode) where a human sees them — honoring "never
+    auto-commit". Editing files during pre-push would not join the in-flight push anyway.
+  - **Fail-open on tooling, fail-closed on drift:** if `claude` is absent/unauthed or the run
+    errors, the push is allowed — a missing tool must never wedge every push. Only a real
+    `DRIFT` verdict blocks.
+  - Sync roster is a **manifest of paths**: `.claude/sync-paths` is the flat authoritative
+    roster ("what"); `.claude/doc-sync.manifest` overlays per-file scope ("how") with
+    `tracks:<glob>` (file documents that code) and `mirrors:<path>` (file must stay consistent
+    with a sibling, e.g. AGENTS.md ↔ CLAUDE.md). A roster path with no manifest line defaults
+    to `tracks:**`.
+- Default assumed (if deferred): n/a — all four questions were answered.
+- Notes: Distribution — `.githooks/` lives outside `.claude/`, so `scripts/bootstrap.sh` copies
+  it explicitly and sets `core.hooksPath` in the target only when it is a git repo and has no
+  existing custom hooksPath (won't clobber husky). Git hooks cannot ride the plugin path
+  (plugins configure Claude Code, not git), so the gate is bootstrap-only. This is the harness's
+  first coordinated-team orchestration; generalizing it to any stage set remains the roadmap's
+  "Team orchestration" item.

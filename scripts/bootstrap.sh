@@ -36,7 +36,27 @@ cp "$src/AGENTS.md" "$dest/AGENTS.md"
 cp "$src/CLAUDE.md" "$dest/CLAUDE.md"
 [[ -f "$src/.mcp.json" ]] && cp "$src/.mcp.json" "$dest/.mcp.json"
 
+# Git hooks (pre-push doc-sync gate) live outside .claude/, so copy them
+# explicitly. They are inert until core.hooksPath points at them.
+if [[ -d "$src/.githooks" ]]; then
+  cp -r "$src/.githooks" "$dest/.githooks"
+  chmod +x "$dest"/.githooks/* 2>/dev/null || true
+fi
+
 chmod +x "$dest/.claude/verify" "$dest"/.claude/hooks/*.sh 2>/dev/null || true
+
+# Enable the tracked hooks if the target is a git repo — but never clobber an
+# existing custom hooksPath (husky, etc.).
+if [[ -d "$dest/.githooks" ]] && git -C "$dest" rev-parse --git-dir >/dev/null 2>&1; then
+  existing="$(git -C "$dest" config --get core.hooksPath || true)"
+  if [[ -z "$existing" ]]; then
+    git -C "$dest" config core.hooksPath .githooks
+    echo "Enabled the pre-push doc-sync gate (core.hooksPath=.githooks) in $dest."
+  else
+    echo "Note: $dest already sets core.hooksPath='$existing'; left as-is."
+    echo "  Chain .githooks/pre-push in manually to enable the doc-sync gate."
+  fi
+fi
 
 echo "Vendored the harness skeleton into $dest."
 echo "Next steps: review AGENTS.md/.claude/rules for project-specific customization,"

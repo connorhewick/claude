@@ -1,0 +1,24 @@
+# Relationship overlay for the doc-sync orchestrator (.claude/skills/doc-sync).
+#
+# The roster of files to keep in sync lives in .claude/sync-paths. This file adds
+# per-file scope so the team checks each against the right thing instead of
+# re-reading the whole repo every time.
+#
+# Format — one line per file: the path, then one or more space-separated
+# relationships. Blank lines and `#` comments are ignored.
+#
+#   tracks:<glob>    The file documents this code. If the glob's files changed in
+#                    the range under review and this file did not, that is drift.
+#   mirrors:<path>   The file must stay consistent with a sibling file
+#                    (relationship is bidirectional). Divergence between them is
+#                    drift — e.g. a convention edited in one but not the other.
+#
+# Globs are repo-relative. A file in .claude/sync-paths with no line here
+# defaults to tracks:** (audited against everything).
+
+README.md      tracks:**
+DECISIONS.md   tracks:.claude/** tracks:scripts/** tracks:.githooks/** tracks:plugin/**
+AGENTS.md      mirrors:CLAUDE.md tracks:.claude/hooks/** tracks:.claude/rules/** tracks:.claude/verify
+CLAUDE.md      mirrors:AGENTS.md tracks:.claude/rules/** tracks:.claude/skills/**
+SCOPE.md       tracks:.claude/** tracks:plugin/**
+VALIDATION.md  tracks:.claude/verify tracks:.claude/verify.d/** tracks:.claude/CONTRACT.md

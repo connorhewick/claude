@@ -96,9 +96,14 @@ templates/
 scripts/
   build-plugin.sh      regenerates plugin/ (skills + agents + hooks)
   bootstrap.sh         vendors the full skeleton into a target project
+  install-hooks.sh     points core.hooksPath at .githooks/ (enables the pre-push doc-sync gate)
   install-global.sh    installs templates/global-CLAUDE.md to ~/.claude/CLAUDE.md (backs up first)
+.githooks/
+  pre-push             doc-sync gate — blocks a push when docs have drifted (fail-open on tooling)
 .claude/
   settings.json        hooks + settings
+  sync-paths           roster of files to keep in sync with the code
+  doc-sync.manifest    per-file scope for the doc-sync team (tracks:<glob> / mirrors:<path>)
   rules/*.md           path-scoped, language-agnostic rules
   hooks/*              deterministic guardrail scripts
   agents/*.md          language-agnostic role subagents
@@ -230,16 +235,17 @@ also on the [Roadmap](#roadmap-missing-cycle-components).
 
 ## Skills
 
-Four reusable, stack-independent procedures in `.claude/skills/`:
+Five reusable, stack-independent procedures in `.claude/skills/`:
 
 | Skill | Invocation | Purpose |
 |---|---|---|
 | `write-prd` | Auto or `/write-prd` | Interview the user to define a new product or major/minor feature, write a PRD at `docs/prd/NNNN-slug.md`, then hand off to `spec-first-planning`. Runs before planning — decides *what* to build and *why*. |
 | `spec-first-planning` | Auto or `/spec-first-planning` | Turn a goal into a spec + checklist (delegates to the `planner` subagent) before implementation starts. |
 | `write-adr` | Auto or `/write-adr` | Write an ADR at `docs/adr/NNNN-short-title.md` for a significant/hard-to-reverse decision, using a lightweight context/decision/consequences template. |
-| `prepare-pr` | Manual only (`/prepare-pr`) | Run `.claude/verify`, review the full diff/commit range, and draft a PR title/body — never pushes or opens the PR itself. |
+| `prepare-pr` | Manual only (`/prepare-pr`) | Run `.claude/verify`, check for doc drift via `doc-sync` (report), review the full diff/commit range, and draft a PR title/body — never pushes or opens the PR itself. |
+| `doc-sync` | Manual (`/doc-sync`) or the pre-push gate | Run the five role agents as a team to detect and fix drift between the code and the files in `.claude/sync-paths`. `fix` mode applies doc edits; `report` mode (read-only) backs the pre-push gate and `prepare-pr`. |
 
-A fourth candidate, a "session bootstrap / load-context" skill, was considered and declined:
+Another candidate, a "session bootstrap / load-context" skill, was considered and declined:
 `DECISIONS.md` isn't auto-loaded and will keep growing, but since this harness is for team
 distribution, a personal/local mechanism (Claude's auto memory) can't substitute for it, and a
 dedicated skill for it wasn't judged worth the added surface area yet. Revisit if a fresh
@@ -272,7 +278,8 @@ call, and the fail-closed verify Stop-gate on the way out.
         ▼
    Stop event ─► verify-gate.sh (advise | block) ─ fail-closed "done"
 
-   throughout: doc-writer keeps README / ADRs in sync with the change
+   throughout: doc-writer keeps README / ADRs in sync with the change; doc-sync runs the five
+               agents as a team to catch drift (pre-push gate + prepare-pr, report mode)
 ```
 
 | # | Stage | Harness component | How to invoke | Status |
@@ -287,11 +294,14 @@ call, and the fail-closed verify Stop-gate on the way out.
 | 8 | Ship | `prepare-pr` skill (drafts only, never pushes) | `/prepare-pr` | Present |
 | — | Gate on finish | `verify-gate.sh` on every `Stop` | Automatic (`HARNESS_VERIFY_STOP_MODE`) | Present |
 | — | Document | `doc-writer` agent | Delegate to `doc-writer` | Present |
+| — | Keep docs in sync | `doc-sync` skill → the five agents as a team | `/doc-sync`, pre-push gate, or `prepare-pr` (`HARNESS_DOCSYNC_MODE`) | Present |
 
-Stages 1–8 are driven by the session or by delegating to a role subagent one at a time — there
-is no orchestration layer that runs them as a coordinated team, selects a model per role, or
-advances the loop automatically. Those gaps, plus the capabilities the cycle can't yet reach
-(CI, PRs, tickets), are the roadmap below.
+Stages 1–8 are driven by the session or by delegating to a role subagent one at a time. The
+`doc-sync` skill is the first coordinated-team orchestration — it runs the five agents as a
+team for one job (documentation drift), triggered manually, by the pre-push gate, or inside
+`prepare-pr`. A general layer that runs *any* stage set as a team, selects a model per role, or
+advances the loop automatically is still absent. Those gaps, plus the capabilities the cycle
+can't yet reach (CI, PRs, tickets), are the roadmap below.
 
 ## Roadmap: missing cycle components
 
@@ -303,7 +313,9 @@ ships observe-only and is promoted once validated.
 
 - [ ] **Team orchestration** — a skill that coordinates the role agents as a team
   (explore×N → plan → implement → review + verify) with `verify` as the fan-in gate, instead of
-  invoking each agent ad hoc.
+  invoking each agent ad hoc. The `doc-sync` skill delivers this shape for one job
+  (documentation drift: explore → verify → plan → write → review); generalizing it to any stage
+  set is what remains.
 - [ ] **Per-role model tiering & token budget** — agents are all `model: inherit`; add a
   `cheap|strong` tier map (reviewers/explorers cheap, implement/synthesis strong) and a
   fan-out cap so a parallel team can't blow the token budget.
