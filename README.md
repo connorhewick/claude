@@ -16,6 +16,8 @@ and `DECISIONS.md` for the full interview log.
 - [Verification Stop-gate](#verification-stop-gate)
 - [Orchestration](#orchestration)
 - [Skills](#skills)
+- [Agentic development cycle](#agentic-development-cycle)
+- [Roadmap: missing cycle components](#roadmap-missing-cycle-components)
 - [Packaging & Distribution](#packaging--distribution)
 - [Handoff — where a future language/stack task plugs in](#handoff--where-a-future-languagestack-task-plugs-in)
 - [Status](#status)
@@ -188,6 +190,87 @@ A fourth candidate, a "session bootstrap / load-context" skill, was considered a
 distribution, a personal/local mechanism (Claude's auto memory) can't substitute for it, and a
 dedicated skill for it wasn't judged worth the added surface area yet. Revisit if a fresh
 session repeatedly needs to re-derive the same context.
+
+## Agentic development cycle
+
+How the pieces above compose into one loop from intent to shipped change. Each stage names the
+harness component that serves it and how it is invoked. The loop is wrapped by the same two
+enforcement layers shown in [Architecture](#architecture): PreToolUse guardrails on every tool
+call, and the fail-closed verify Stop-gate on the way out.
+
+```
+   intent / ticket
+        │
+        ▼
+   ┌─── the loop ─────────────────────────────────────────────
+   │ 1 FRAME        write-prd        ─►  PRD (problem, users, scope)
+   │ 2 PLAN         spec-first-planning ─► planner ─► spec + checklist
+   │ 3 INVESTIGATE  explorer         ─►  findings (read-only, no edits)
+   │ 4 DECIDE       write-adr        ─►  docs/adr/NNNN-*.md
+   │ 5 IMPLEMENT    main session     ◄─  guard-edits / guard-bash gate
+   │                                     each Edit·Write·Bash call
+   │ 6 REVIEW       reviewer         ─►  findings by severity (read-only)
+   │ 7 VERIFY       verifier ─► .claude/verify ─► verify.d/ adapters
+   │ 8 SHIP         prepare-pr       ─►  PR draft (branch-name guard,
+   │                                     Conventional Commits; never pushes)
+   └──────────────────────────────────────────────────────────
+        │
+        ▼
+   Stop event ─► verify-gate.sh (advise | block) ─ fail-closed "done"
+
+   throughout: doc-writer keeps README / ADRs in sync with the change
+```
+
+| # | Stage | Harness component | How to invoke | Status |
+|---|---|---|---|---|
+| 1 | Frame the need | `write-prd` skill → PRD | Auto or `/write-prd` | Present |
+| 2 | Plan | `spec-first-planning` skill → `planner` agent | Auto or `/spec-first-planning` | Present |
+| 3 | Investigate | `explorer` agent (read-only) | Delegate to `explorer` | Present |
+| 4 | Decide architecture | `write-adr` skill → `docs/adr/` | Auto or `/write-adr` | Present |
+| 5 | Implement | Main session, gated by PreToolUse guardrails | Direct edits; hooks fire per tool call | Present (agnostic); stack-specialist implementer is a [Handoff](#handoff--where-a-future-languagestack-task-plugs-in) seam |
+| 6 | Review | `reviewer` agent (read-only) | Delegate to `reviewer` | Present |
+| 7 | Verify | `verifier` agent → `.claude/verify` → `verify.d/` | Delegate to `verifier`, or `.claude/verify` | Contract present; **adapters empty — fails closed by design** (per-project seam) |
+| 8 | Ship | `prepare-pr` skill (drafts only, never pushes) | `/prepare-pr` | Present |
+| — | Gate on finish | `verify-gate.sh` on every `Stop` | Automatic (`HARNESS_VERIFY_STOP_MODE`) | Present |
+| — | Document | `doc-writer` agent | Delegate to `doc-writer` | Present |
+
+Stages 1–8 are driven by the session or by delegating to a role subagent one at a time — there
+is no orchestration layer that runs them as a coordinated team, selects a model per role, or
+advances the loop automatically. Those gaps, plus the capabilities the cycle can't yet reach
+(CI, PRs, tickets), are the roadmap below.
+
+## Roadmap: missing cycle components
+
+Features that would close gaps in the cycle above. Items marked *(seam)* are intentional
+extension points already documented in [Handoff](#handoff--where-a-future-languagestack-task-plugs-in)
+— listed here for completeness, not as defects. Roll out any behavior-changing item behind an
+`advise|act` mode switch mirroring `HARNESS_GUARDRAIL_MODE` / `HARNESS_VERIFY_STOP_MODE`, so it
+ships observe-only and is promoted once validated.
+
+- [ ] **Team orchestration** — a skill that coordinates the role agents as a team
+  (explore×N → plan → implement → review + verify) with `verify` as the fan-in gate, instead of
+  invoking each agent ad hoc.
+- [ ] **Per-role model tiering & token budget** — agents are all `model: inherit`; add a
+  `cheap|strong` tier map (reviewers/explorers cheap, implement/synthesis strong) and a
+  fan-out cap so a parallel team can't blow the token budget.
+- [ ] **Event-driven automation** — `UserPromptSubmit` routing to the right skill/agent,
+  `SubagentStop`/`Stop` chaining to auto-advance stages, and scheduled (cron) runs for recurring
+  team work (doc-drift sweeps, PR triage). Behind an `advise|auto` switch.
+- [ ] **CI integration** — the definition of done in `AGENTS.md` requires "CI is green," but
+  nothing in the harness invokes or reports CI; `verify` is local-only.
+- [ ] **Capability wiring** *(seam)* — version control (GitHub), issue tracking (Jira), and
+  doc search (Confluence) are planned but absent from `.mcp.json`, so the cycle can't open PRs,
+  read tickets, or search docs through the harness. See [Capabilities](#capabilities).
+- [ ] **Stack verification adapters** *(seam)* — `verify.d/` is empty, so stage 7 fails closed.
+  Registering `format`/`lint`/`typecheck`/`test`/`build`/`security` adapters is the primary
+  handoff seam.
+- [ ] **Stack-specialist implementer** *(seam)* — no language/framework specialist subagent for
+  stage 5; deferred to the specialization task.
+- [ ] **Requirements traceability** — nothing links PRD → spec → `verify` stages → PR; each
+  artifact stands alone, so coverage of the original need isn't checkable.
+- [ ] **Session context bootstrap** — `DECISIONS.md`, PRDs, and ADRs aren't auto-loaded; a fresh
+  session re-derives context. A load-context skill was declined once (see [Skills](#skills)) —
+  revisit as the decision log grows.
 
 ## Packaging & Distribution
 
