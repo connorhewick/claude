@@ -32,6 +32,11 @@ this list.
 - Write an ADR for any significant or hard-to-reverse architectural decision. Use the
   `adr-writer` skill if available; otherwise use a lightweight template capturing context,
   decision, and consequences.
+- Prefer short descriptive names over bare identifiers when referencing tickets (Jira, etc.)
+  or documents (PRDs, ADRs). Use `PROJ-142-oauth-token-refresh` rather than `PROJ-142`, and
+  `ADR4-postgres-over-dynamo` rather than `ADR4`. The description makes the reference
+  self-explanatory when resuming a session's task later, without needing to re-open the
+  ticket or document to recall what it covers.
 
 ## Absolute prohibitions
 
