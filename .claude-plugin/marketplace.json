@@ -1,0 +1,11 @@
+{
+  "name": "harness",
+  "owner": { "name": "Connor", "email": "connor@hewick.ca" },
+  "plugins": [
+    {
+      "name": "claude-code-harness",
+      "source": "./plugin",
+      "description": "Language-agnostic Claude Code harness: guardrail hooks, orchestration subagents, and reusable skills."
+    }
+  ]
+}

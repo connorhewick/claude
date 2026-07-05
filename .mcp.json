@@ -1,0 +1,4 @@
+{
+  "//": "Cross-stack MCP servers only (VCS, issue tracker, docs, read-only DB). Populated in Phase 3. No language-ecosystem servers (package registries, test runners) belong here.",
+  "mcpServers": {}
+}
