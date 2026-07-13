@@ -133,16 +133,15 @@ jobs:
           ref: ${{ steps.pr.outputs.head_sha }}
           fetch-depth: 0
 
-      - name: Fetch base + memory branch
+      - name: Fetch base + memory branch (auto-init if missing)
         run: |
           set -euo pipefail
           git fetch origin "${{ steps.pr.outputs.base_ref }}"
-          if git ls-remote --exit-code --heads origin "$MEMORY_BRANCH" >/dev/null 2>&1; then
-            git fetch origin "$MEMORY_BRANCH":refs/remotes/origin/"$MEMORY_BRANCH"
-          else
-            echo "::error::$MEMORY_BRANCH branch does not exist. Run scripts/init-claude-memory.sh once to seed it." >&2
-            exit 1
+          if ! git ls-remote --exit-code --heads origin "$MEMORY_BRANCH" >/dev/null 2>&1; then
+            echo "$MEMORY_BRANCH does not exist on origin — seeding it now via scripts/init-claude-memory.sh"
+            bash scripts/init-claude-memory.sh origin
           fi
+          git fetch origin "$MEMORY_BRANCH":refs/remotes/origin/"$MEMORY_BRANCH"
           git worktree add ../memory "origin/$MEMORY_BRANCH"
 
       - name: Skip synchronize if no pending plan
