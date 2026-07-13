@@ -42,7 +42,8 @@ the way in (tool calls) and a fail-closed verification gate on the way out (Stop
 │ guard-branch-name.sh  │   │  verifier, doc-writer   │   │ on every Stop event     │
 │ HARNESS_GUARDRAIL_MODE│   │ skills/: spec-first-    │   │ HARNESS_VERIFY_STOP_    │
 │ advisory | blocking   │   │  planning, write-adr,   │   │ MODE: advise | block    │
-│                       │   │  prepare-pr, write-prd  │   │                         │
+│                       │   │  prepare-pr, write-prd, │   │                         │
+│                       │   │  doc-sync, split-commits│   │                         │
 └─────────┬─────────────┘   └─────────────────────────┘   └────────────┬────────────┘
           │ allow / deny                                               │ runs
           ▼                                                            ▼
