@@ -25,6 +25,13 @@ a file it can't back up.
 
 - Use Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`) on every
   commit. Never commit or push unless asked.
+- When staged changes span more than one distinct concern or feature, split them into separate,
+  logical, atomic commits rather than one mixed commit — present the split as a plan and get
+  approval before committing.
+- Start new feature work on its own feature branch, never directly on the branch you happen to
+  be on. When more than one feature is active at once, give each its own git worktree
+  (`EnterWorktree`/`ExitWorktree`) instead of stashing or switching branches in a single working
+  tree, so uncommitted work on one feature never blocks or bleeds into another.
 - Never push to a repo's default branch. Branch first, then open a pull request.
 
 ## When a repo ships the harness

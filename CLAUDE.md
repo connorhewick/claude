@@ -5,6 +5,17 @@
 Path-scoped rules live in `.claude/rules/*.md`. The verification contract
 (`.claude/CONTRACT.md`, entrypoint `.claude/verify`) is the arbiter of "done."
 
+## Feature branches and parallel work
+
+Start every new feature on its own feature branch (naming and the never-push-to-default rule
+are in `AGENTS.md` Version control; `.claude/hooks/guard-branch-name.sh` enforces the scheme) —
+never build a new feature directly on the branch you happen to be on. When more than one
+feature is active at once, give each its own git worktree via `EnterWorktree` (one worktree per
+in-flight feature) rather than stashing or switching branches inside a single working tree, so
+uncommitted work on one feature never blocks or bleeds into another. Use `ExitWorktree` —
+`keep` to preserve a branch you'll return to, `remove` once it's merged or abandoned — to move
+between them.
+
 ## Code walkthrough + interview (human in the loop)
 
 Before handing a non-trivial change off for review or a PR — and before treating it as done —
@@ -25,3 +36,11 @@ Run it in three steps:
 3. **Incorporate** — apply the human's answers before converging the change or opening the PR.
 
 Skip it only for trivial changes (typos, one-line fixes) where there is nothing to decide.
+
+## SwiftUI previews
+
+This repo has no SwiftUI code, so this rule is dormant here — it exists for consistency with
+`~/.claude/CLAUDE.md`. Wherever SwiftUI code is touched: always include a working `#Preview` for
+every `View` you write or edit — the SwiftUI equivalent of verifying a UI change in a browser
+before calling it done. Keep the Xcode project's `ENABLE_PREVIEWS` build setting `YES` (the
+modern Xcode default); don't disable it.
