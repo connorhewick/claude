@@ -36,3 +36,11 @@ Run it in three steps:
 3. **Incorporate** — apply the human's answers before converging the change or opening the PR.
 
 Skip it only for trivial changes (typos, one-line fixes) where there is nothing to decide.
+
+## SwiftUI previews
+
+This repo has no SwiftUI code, so this rule is dormant here — it exists for consistency with
+`~/.claude/CLAUDE.md`. Wherever SwiftUI code is touched: always include a working `#Preview` for
+every `View` you write or edit — the SwiftUI equivalent of verifying a UI change in a browser
+before calling it done. Keep the Xcode project's `ENABLE_PREVIEWS` build setting `YES` (the
+modern Xcode default); don't disable it.
