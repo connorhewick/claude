@@ -3,3 +3,7 @@
 
 # doc-sync runtime artifact (regenerated on every run; never committed).
 .claude/doc-sync.log
+
+.DS_Store
+
+.claude/.DS_Store
