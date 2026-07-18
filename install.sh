@@ -18,7 +18,8 @@ usage() {
 }
 
 # One function per component. Each just delegates to the typed helper in
-# common.sh for its extension point (skill/agent/rule/command/statusline).
+# common.sh for its extension point (skill/agent/rule/command/hook/output
+# style/statusline).
 install_write_prd()           { install_skill  write-prd; }
 install_write_adr()           { install_skill  write-adr; }
 install_prepare_pr()          { install_skill  prepare-pr; }

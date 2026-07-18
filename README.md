@@ -36,16 +36,18 @@ Re-running `install.sh` is safe — anything it would overwrite gets backed up f
 | [`statusline`](statusline) | statusline | `~/.claude/statuslines/statusline.sh` | Folder, git branch, model, effort, context bar, tokens, cache %, cost, rate limit |
 | [`global-rules`](global-rules) | global-rules | `~/.claude/CLAUDE.md` | Personal cross-project defaults, loaded in every project on this machine |
 
-One more component type is supported by `install.sh`/`uninstall.sh` but has no example yet:
+Three more component types are supported by `install.sh`/`uninstall.sh` but have no example yet:
 
 | Type | Source file | Installs to |
 |---|---|---|
 | slash command | `<name>/command.md` | `~/.claude/commands/<name>.md` |
+| hook | `<name>/hook.sh` + `<name>/hook.json` | `~/.claude/hooks/<name>.sh`, plus a merged entry under `~/.claude/settings.json`'s `.hooks.<event>` |
+| output style | `<name>/output-style.md` | `~/.claude/output-styles/<name>.md` |
 
 ## Adding a new component
 
-1. Create `<name>/` with its source file (`SKILL.md`, `agent.md`, `rule.md`, `command.md`, or
-   `statusline.sh`) and a `README.md`.
+1. Create `<name>/` with its source file (`SKILL.md`, `agent.md`, `rule.md`, `command.md`,
+   `hook.sh` + `hook.json`, `output-style.md`, or `statusline.sh`) and a `README.md`.
 2. Add a row to the component table above.
 3. Touch four things across `install.sh` / `uninstall.sh` (plus `components.sh`, shared by
    both):
