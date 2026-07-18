@@ -10,10 +10,10 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/components.sh
-source "$here/lib/components.sh"
-# shellcheck source=lib/common.sh
-source "$here/lib/common.sh"
+# shellcheck source=components.sh
+source "$here/components.sh"
+# shellcheck source=common.sh
+source "$here/common.sh"
 
 usage() {
   echo "Usage: $0 all | <component> [<component> ...]" >&2

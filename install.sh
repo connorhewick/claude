@@ -8,10 +8,10 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/components.sh
-source "$here/lib/components.sh"
-# shellcheck source=lib/common.sh
-source "$here/lib/common.sh"
+# shellcheck source=components.sh
+source "$here/components.sh"
+# shellcheck source=common.sh
+source "$here/common.sh"
 
 usage() {
   echo "Usage: $0 all | <component> [<component> ...]" >&2
@@ -20,7 +20,7 @@ usage() {
 }
 
 # One function per component. Each just delegates to the typed helper in
-# lib/common.sh for its extension point (skill/agent/rule/command/statusline).
+# common.sh for its extension point (skill/agent/rule/command/statusline).
 install_write_prd()           { install_skill  write-prd; }
 install_spec_first_planning() { install_skill  spec-first-planning; }
 install_write_adr()           { install_skill  write-adr; }
