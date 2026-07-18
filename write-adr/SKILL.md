@@ -1,7 +1,8 @@
 ---
 name: write-adr
 description: Write an Architecture Decision Record for a significant or hard-to-reverse decision. Use when a new dependency, schema change, cross-cutting refactor, or a choice between competing architectural approaches has just been made.
-argument-hint: [short-title]
+argument-hint: >
+  [short-title]
 ---
 
 Record the decision at `docs/adr/NNNN-short-title.md`, where `NNNN` is the next unused
