@@ -88,6 +88,28 @@ uninstall_rule() {
   echo "removed rule: $name"
 }
 
+# --- output style: <name>/output-style.md -> ~/.claude/output-styles/<name>.md
+# Installing a style doesn't select it — the user still opts in via
+# `/config` (or the `outputStyle` setting) themselves.
+install_output_style() {
+  local name="$1"
+  local dest="$CLAUDE_DIR/output-styles/$name.md"
+  if [[ -f "$dest" ]] && cmp -s "$SRC/$name/output-style.md" "$dest"; then
+    echo "output style $name is already up to date — nothing to do."
+    return 0
+  fi
+  mkdir -p "$CLAUDE_DIR/output-styles"
+  backup_if_exists "$dest"
+  cp "$SRC/$name/output-style.md" "$dest"
+  echo "installed output style: $name -> $dest"
+}
+
+uninstall_output_style() {
+  local name="$1"
+  rm -f "$CLAUDE_DIR/output-styles/$name.md"
+  echo "removed output style: $name"
+}
+
 # --- slash command: <name>/command.md -> ~/.claude/commands/<name>.md
 # No component uses this type yet; kept ready for the first one. Named
 # install_command_file (not install_command) so a component ever literally
@@ -110,6 +132,92 @@ uninstall_command_file() {
   local name="$1"
   rm -f "$CLAUDE_DIR/commands/$name.md"
   echo "removed command: $name"
+}
+
+# --- hook: <name>/hook.sh + <name>/hook.json -> ~/.claude/hooks/<name>.sh
+# plus a jq-merged matcher-group entry under settings.json's .hooks.<event>.
+# hook.json supplies the event (required, e.g. "PostToolUse") and matcher
+# (optional, defaults to "*"); the installed script's path becomes the
+# handler's "command" (type "command" only — this repo has no use yet for
+# the http/mcp_tool/prompt hook types). Uninstall only removes handler
+# entries whose command points at this component's script, so it never
+# touches hooks the user configured by hand or that another component owns.
+install_hook() {
+  local name="$1"
+  local dest="$CLAUDE_DIR/hooks/$name.sh"
+  local meta="$SRC/$name/hook.json"
+  local event matcher
+  event="$(jq -r '.event' "$meta")"
+  matcher="$(jq -r '.matcher // "*"' "$meta")"
+
+  if [[ -f "$dest" ]] && cmp -s "$SRC/$name/hook.sh" "$dest"; then
+    echo "hook $name script is already up to date."
+  else
+    mkdir -p "$CLAUDE_DIR/hooks"
+    backup_if_exists "$dest"
+    cp "$SRC/$name/hook.sh" "$dest"
+    chmod +x "$dest"
+    echo "installed hook script: $name -> $dest"
+  fi
+
+  local settings="$CLAUDE_DIR/settings.json"
+  mkdir -p "$CLAUDE_DIR"
+  [[ -f "$settings" ]] || echo '{}' > "$settings"
+
+  if jq -e --arg event "$event" --arg matcher "$matcher" --arg cmd "$dest" '
+      [(.hooks[$event] // [])[] | select(.matcher == $matcher) | (.hooks // [])[] | select(.command == $cmd)]
+      | length > 0
+    ' "$settings" >/dev/null; then
+    echo "  settings.json already has this hook registered under $event"
+    return 0
+  fi
+
+  local tmp
+  tmp="$(mktemp)"
+  jq --arg event "$event" --arg matcher "$matcher" --arg cmd "$dest" '
+    .hooks = (.hooks // {}) |
+    .hooks[$event] = (.hooks[$event] // []) |
+    if ([.hooks[$event][] | select(.matcher == $matcher)] | length) > 0 then
+      .hooks[$event] = [
+        .hooks[$event][]
+        | if .matcher == $matcher
+          then .hooks = ((.hooks // []) + [{"type": "command", "command": $cmd}])
+          else . end
+      ]
+    else
+      .hooks[$event] += [{"matcher": $matcher, "hooks": [{"type": "command", "command": $cmd}]}]
+    end
+  ' "$settings" > "$tmp"
+  mv "$tmp" "$settings"
+  echo "  settings.json .hooks.$event -> $dest (matcher: $matcher)"
+}
+
+uninstall_hook() {
+  local name="$1"
+  local dest="$CLAUDE_DIR/hooks/$name.sh"
+  local meta="$SRC/$name/hook.json"
+  local event
+  event="$(jq -r '.event' "$meta")"
+
+  local settings="$CLAUDE_DIR/settings.json"
+  if [[ -f "$settings" ]]; then
+    local tmp
+    tmp="$(mktemp)"
+    jq --arg event "$event" --arg cmd "$dest" '
+      .hooks = (.hooks // {}) |
+      .hooks[$event] = [
+        (.hooks[$event] // [])[]
+        | .hooks = [(.hooks // [])[] | select(.command != $cmd)]
+        | select((.hooks | length) > 0)
+      ] |
+      if (.hooks[$event] | length) == 0 then .hooks |= del(.[$event]) else . end
+    ' "$settings" > "$tmp"
+    mv "$tmp" "$settings"
+    echo "  removed $name's entries from settings.json .hooks.$event"
+  fi
+
+  rm -f "$dest"
+  echo "removed hook: $name"
 }
 
 # --- statusline: <name>/statusline.sh -> ~/.claude/statuslines/<name>.sh

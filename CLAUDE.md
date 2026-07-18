@@ -17,6 +17,53 @@ its own top-level directory with its source file and a `README.md`; there is no 
 `.claude/agents`/`.claude/skills`/`.claude/rules` in this repo itself; developing the components
 doesn't require having them installed.
 
+## Choosing a component type
+
+Before adding a component, decide its type from what triggers it and what scope it needs —
+don't take a proposed type at face value:
+
+- **rule** (`.claude/rules/*.md`): auto-applied and path-scoped. No invocation — Claude reads it
+  automatically whenever the paths it declares are touched. Use for a standing constraint or
+  convention scoped to particular files/directories (e.g. "always include a `#Preview` for
+  SwiftUI views").
+- **global-rules**: the one component that installs to `~/.claude/CLAUDE.md` itself — always
+  loaded, every project, unconditionally, regardless of path. This repo has (and should only
+  ever have) a single `global-rules` component; a new cross-project default is an addition to
+  that component's own file, not a new top-level component.
+- **skill** (`SKILL.md`): on-demand — invoked explicitly (`/name`) or auto-triggered when its
+  `description` matches the user's intent. Use for a multi-step workflow with its own procedure,
+  optional supporting files (references, scripts), and/or conditional logic (branches,
+  checklists, preconditions).
+- **agent** (`agent.md`): a dedicated tool/context scope, spawned via the `Task`/`Agent`
+  mechanism rather than invoked directly by the user. Use when the value is isolating context
+  (keeping a large search or investigation out of the main conversation) or restricting tool
+  access — not when it's something the user names and runs directly.
+- **slash command** (`command.md`): explicit-only, no auto-trigger, no branching logic — a
+  static prompt template the user runs by name. Use when a skill would be overkill: nothing to
+  trigger on automatically, no supporting files, no multi-step procedure to encode.
+- **hook** (`hook.sh` + `hook.json`): runs on a harness event (`PreToolUse`, `PostToolUse`,
+  `Stop`, …), not on anything Claude decides — it fires even if Claude never reads it. Use for an
+  enforced, mechanical action (block/allow a tool call, run a formatter after edits) rather than
+  guidance for Claude to weigh and possibly ignore.
+- **output style** (`output-style.md`): rewrites the system prompt itself — role, tone, and
+  default response shape for the whole session. Use only when the goal is changing *how Claude
+  communicates* across every turn (e.g. a non-engineering persona); it's not for project
+  conventions or a one-off task, which belong in `global-rules`/a `rule`/a `skill` instead.
+
+This repo doesn't support MCP servers as a component type (no current use case) — don't propose
+one without raising it first.
+
+Run this decision every time a component is about to be added, including:
+- when the user has already specified a type — check it against the criteria above rather than
+  accepting it as given;
+- when porting a component in from a different Claude config repo — its type there reflects that
+  repo's own conventions, which may not match this repo's semantics (e.g. what was a "rule" or
+  "skill" elsewhere may not be this repo's notion of the same word — see `global-rules` above vs.
+  a path-scoped `rule`, or a skill's on-demand invocation vs. an agent's dedicated context scope).
+
+If the specified/existing type doesn't match what the criteria point to, say so and propose the
+right type before proceeding with the add.
+
 ## Adding/removing components
 
 Adding or removing a top-level component is a single atomic change that touches all of:
