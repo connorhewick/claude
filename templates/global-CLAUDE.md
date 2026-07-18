@@ -4,10 +4,10 @@ Personal, cross-project defaults for Claude Code, installed at `~/.claude/CLAUDE
 load in every project on this machine. Intentionally stack-agnostic: no project- or
 company-specific rules live here — those belong in a project's own `AGENTS.md` / `CLAUDE.md`.
 
-This file is a template shipped by the Claude Code harness. To (re)install or update it, run
-`scripts/install-global.sh` from the harness repo — it backs up any existing `~/.claude/CLAUDE.md`
-first. Edit your own additions below the harness content; a re-install will not silently discard
-a file it can't back up.
+This file is a template from the `connorhewick/claude` component repo. To (re)install or update
+it, run `scripts/install-global.sh` from that repo — it backs up any existing
+`~/.claude/CLAUDE.md` first. Edit your own additions below the marked line; a re-install will
+not silently discard a file it can't back up.
 
 ## Working method (every project)
 
@@ -34,24 +34,18 @@ a file it can't back up.
   tree, so uncommitted work on one feature never blocks or bleeds into another.
 - Never push to a repo's default branch. Branch first, then open a pull request.
 
-## When a repo ships the harness
+## Installed components
 
-A harness repo has a `.claude/verify` entrypoint plus `.claude/agents/` and `.claude/skills/`.
-In those repos:
+Skills, agents, and rules installed from `connorhewick/claude` (via that repo's `install.sh`)
+apply globally, across every project — there's no per-repo detection needed. When the relevant
+ones are installed, drive substantial work through: frame (`write-prd`) → plan
+(`spec-first-planning`) → investigate (`explorer`) → decide (`write-adr`) → implement → review
+(`reviewer`) → ship (`prepare-pr`). Delegate to the role subagents (`planner`, `explorer`,
+`reviewer`, `doc-writer`) rather than doing everything inline — each is read-only or narrowly
+scoped by design.
 
-- Treat `.claude/verify` as the arbiter of "done." A change is done only when the relevant
-  verify stages pass, CI is green, a human has approved, and the stated acceptance criteria are
-  met — never on partial satisfaction.
-- Drive substantial work through the development cycle: frame (`write-prd`) → plan
-  (`spec-first-planning`) → investigate (`explorer`) → decide (`write-adr`) → implement →
-  review (`reviewer`) → verify (`verifier`) → ship (`prepare-pr`).
-- Delegate to the role subagents rather than doing everything inline: `planner`, `explorer`,
-  `reviewer`, `verifier`, `doc-writer`. Each is read-only or narrowly scoped by design.
-- Respect the project's guardrails and path-scoped rules (`.claude/rules/*.md`, the PreToolUse
-  hooks). They are deterministic and fail-closed — don't work around them.
-
-In repos without the harness, apply the working method and version-control defaults above and
-otherwise follow that project's own conventions.
+In any given project, otherwise follow that project's own stated conventions
+(`AGENTS.md`/`CLAUDE.md`/`.claude/rules/*.md`).
 
 <!-- Add your personal preferences below this line; re-running install-global.sh backs up the
      whole file before replacing it, so your additions are recoverable from the .bak copy. -->
