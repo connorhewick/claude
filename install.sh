@@ -35,8 +35,8 @@ install_explorer()            { install_agent  explorer; }
 install_reviewer()            { install_agent  reviewer; }
 install_doc_writer()          { install_agent  doc-writer; }
 install_docs()                { install_rule   docs; }
-install_walkthroughs()        { install_rule   walkthroughs; }
 install_statusline()          { install_statusline_file statusline; }
+install_global_rules()        { install_claude_md_file global-rules; }
 
 run_installer() {
   case "$1" in
@@ -54,8 +54,8 @@ run_installer() {
     reviewer)             install_reviewer ;;
     doc-writer)           install_doc_writer ;;
     docs)                 install_docs ;;
-    walkthroughs)         install_walkthroughs ;;
     statusline)           install_statusline ;;
+    global-rules)         install_global_rules ;;
     *)
       echo "install.sh: unknown component '$1'" >&2
       exit 1

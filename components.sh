@@ -23,8 +23,8 @@ ALL_COMPONENTS=(
   reviewer
   doc-writer
   docs
-  walkthroughs
   statusline
+  global-rules
 )
 
 is_known_component() {
@@ -32,7 +32,7 @@ is_known_component() {
     write-prd|spec-first-planning|write-adr|prepare-pr|split-commits| \
     device-logs|port-ios-to-web|port-web-to-ios|doc-sync| \
     planner|explorer|reviewer|doc-writer| \
-    docs|walkthroughs|statusline)
+    docs|statusline|global-rules)
       return 0 ;;
     *)
       return 1 ;;

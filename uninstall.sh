@@ -35,8 +35,8 @@ uninstall_explorer()            { uninstall_agent  explorer; }
 uninstall_reviewer()            { uninstall_agent  reviewer; }
 uninstall_doc_writer()          { uninstall_agent  doc-writer; }
 uninstall_docs()                { uninstall_rule   docs; }
-uninstall_walkthroughs()        { uninstall_rule   walkthroughs; }
 uninstall_statusline()          { uninstall_statusline_file statusline; }
+uninstall_global_rules()        { uninstall_claude_md_file global-rules; }
 
 run_uninstaller() {
   case "$1" in
@@ -54,8 +54,8 @@ run_uninstaller() {
     reviewer)             uninstall_reviewer ;;
     doc-writer)           uninstall_doc_writer ;;
     docs)                 uninstall_docs ;;
-    walkthroughs)         uninstall_walkthroughs ;;
     statusline)           uninstall_statusline ;;
+    global-rules)         uninstall_global_rules ;;
     *)
       echo "uninstall.sh: unknown component '$1'" >&2
       exit 1
