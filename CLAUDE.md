@@ -19,13 +19,26 @@ doesn't require having them installed.
 
 ## Choosing a component type
 
-Before adding a component, decide its type from what triggers it and what scope it needs —
-don't take a proposed type at face value:
+Before adding a *new* component, first check whether the request actually belongs in an
+*existing* one instead — most often, a new convention scoped to a language, framework, or
+concern that's already covered by an existing `rule` component (e.g. a new SwiftUI convention
+belongs in `swiftui-rules/rule.md`, a new git convention in `git-rules/rule.md`), or a new
+cross-project default that belongs in `global-rules`'s own file (see the `global-rules` bullet
+below). Only once nothing existing fits does a new top-level component get created.
+
+Once that's ruled out, decide the new component's type from what triggers it and what scope it
+needs — don't take a proposed type at face value:
 
 - **rule** (`.claude/rules/*.md`): auto-applied and path-scoped. No invocation — Claude reads it
   automatically whenever the paths it declares are touched. Use for a standing constraint or
   convention scoped to particular files/directories (e.g. "always include a `#Preview` for
-  SwiftUI views").
+  SwiftUI views"). If the rule is scoped to a specific file type, language, or framework, its
+  `rule.md` must carry `paths:` frontmatter matching that scope (e.g. `paths: ["**/*.swift"]`)
+  so it only enters context in sessions that actually touch matching files, rather than loading
+  unconditionally into every session regardless of relevance. A rule with no natural file-type
+  scope — a cross-cutting concern like git/version-control or documentation conventions — can
+  omit `paths` and load unconditionally instead; that's a deliberate choice for that kind of
+  rule, not an oversight.
 - **global-rules**: the one component that installs to `~/.claude/CLAUDE.md` itself — always
   loaded, every project, unconditionally, regardless of path. This repo has (and should only
   ever have) a single `global-rules` component; a new cross-project default is an addition to
