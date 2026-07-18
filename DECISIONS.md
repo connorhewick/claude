@@ -378,3 +378,47 @@ the default assumed because the user deferred.
 - Notes: Chosen as an instruction over a git/CI hook to stay stack-agnostic and reuse the `gh`
   CLI the PR flow already depends on. CLAUDE.md needs no separate edit — it imports AGENTS.md,
   so the convention reaches both files from one place (no duplication, no drift).
+
+## 2026-07-17 — Pivot: team-distributed harness → composable personal component repo
+- Question: This repo was built (Phase 0) as a team-distributed engineering harness — a
+  verify contract, guardrail hooks, a plugin marketplace, and a bootstrap script for vendoring
+  into other project repos. A new goal asked for a different product: a personal, composable
+  library of Claude Code customizations, each in its own top-level directory, installed into
+  `~/.claude/` by a pair of `install.sh`/`uninstall.sh` scripts sharing one dispatch pattern
+  (`ALL_COMPONENTS` array, `is_known_component()`, `run_installer()`/`run_uninstaller()`). How
+  should the two coexist?
+- Decision: Full replace, not side-by-side. The harness framing is retired outright:
+  `.claude/verify`, `CONTRACT.md`, `verify.d/`, the three guardrail hooks and the Stop-gate
+  hook, `plugin/` and `scripts/build-plugin.sh`, `scripts/bootstrap.sh`,
+  `.claude/rules/generated-paths.md`, `SCOPE.md`, `VALIDATION.md`, and `tests/acceptance/`
+  (which validated the retired bootstrap→verify flow end-to-end) are all deleted, not preserved
+  elsewhere or ported to a project-scoped component.
+- Sub-decisions (from the interview):
+  - **No hooks component type.** The five component types are skill, agent, rule, slash
+    command, and statusline — hooks don't become a sixth. Guardrail/Stop-gate hooks are
+    removed entirely.
+  - **No dogfooding link.** Unlike the old `plugin/`-generated-from-`.claude/` pattern, this
+    repo's own `.claude/` is not generated/symlinked from the top-level components. The
+    component directories are the only source of truth; this repo doesn't need a working copy
+    of its own skills/agents to develop itself.
+  - **`verifier` agent dropped**, not migrated — its whole job was invoking the now-deleted
+    `.claude/verify`, meaningless once the verify contract is gone. **`doc-sync` skill kept but
+    repurposed**: rewritten to audit README/`docs/**`/an explicit path list instead of the
+    harness-specific `.claude/sync-paths`/`doc-sync.manifest` roster, and to orchestrate
+    `explorer`→`planner`→`doc-writer`→`reviewer` (dropping `verifier` from the team) instead of
+    all five original roles.
+  - **`walkthroughs` rule kept as hand-maintained duplication, not a generated link**: its
+    content lives both as the installable `walkthroughs/rule.md` component and, copied by hand,
+    in this repo's own `CLAUDE.md` — needed here because this repo's own PR-review workflow
+    (`.github/workflows/claude-pr-review.yml`, `scripts/init-claude-memory.sh`) depends on it,
+    and there's no `.claude/rules/` dogfooding link to supply it automatically.
+  - **`templates/global-CLAUDE.md`/`scripts/install-global.sh` kept standalone**, not folded
+    into the five-type dispatch — `CLAUDE.md` is a single well-known file, not a
+    skill/agent/rule/command/statusline.
+- Default assumed (if deferred): n/a — all sub-decisions were answered in the interview.
+- Notes: Confirmed via current Claude Code docs that `~/.claude/skills/`, `~/.claude/agents/`,
+  and `~/.claude/rules/` are all real, officially-documented global (all-projects) discovery
+  locations, and that `~/.claude/settings.json` supports a `statusLine` key. Custom slash
+  commands are documented as "merged into skills," but the standalone
+  `~/.claude/commands/<name>.md` mechanism still works, so it remains a distinct component type
+  for a plain deterministic command over a full skill.

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Installs the harness's global CLAUDE.md template to the user's Claude Code
-# config dir (~/.claude/CLAUDE.md, or $CLAUDE_CONFIG_DIR/CLAUDE.md if set).
-# This is a third, personal/cross-project install path — distinct from the
-# plugin bundle (skills/agents/hooks) and bootstrap.sh (per-project skeleton).
+# Installs templates/global-CLAUDE.md to the user's Claude Code config dir
+# (~/.claude/CLAUDE.md, or $CLAUDE_CONFIG_DIR/CLAUDE.md if set). CLAUDE.md is a
+# single well-known file, not one of the five component types install.sh/
+# uninstall.sh dispatch over, so it keeps its own small standalone script.
 #
 # It never clobbers an existing global CLAUDE.md silently: any current file is
 # backed up to a timestamped .bak beside it first, and if that backup can't be
@@ -37,5 +37,5 @@ if [[ -f "$target" ]]; then
 fi
 
 cp "$template" "$target"
-echo "Installed harness global CLAUDE.md to $target."
+echo "Installed global CLAUDE.md to $target."
 echo "Review it, then add any personal preferences below the marked line at the end."
