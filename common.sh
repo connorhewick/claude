@@ -4,7 +4,7 @@
 # component.
 
 # Repo root (the directory containing this repo's component directories).
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Destination: ~/.claude, or $CLAUDE_CONFIG_DIR if set (lets tests/dry-runs
 # point this at a scratch directory instead of the real home config).
@@ -142,6 +142,28 @@ install_statusline_file() {
   jq --arg cmd "$dest" '.statusLine = {type: "command", command: $cmd}' "$settings" > "$tmp"
   mv "$tmp" "$settings"
   echo "  settings.json .statusLine -> $dest"
+}
+
+# --- global-rules: <name>/CLAUDE.md -> ~/.claude/CLAUDE.md
+# The one component that installs to a single well-known file directly under
+# $CLAUDE_DIR rather than a per-component subdirectory.
+install_claude_md_file() {
+  local name="$1"
+  local dest="$CLAUDE_DIR/CLAUDE.md"
+  if [[ -f "$dest" ]] && cmp -s "$SRC/$name/CLAUDE.md" "$dest"; then
+    echo "$name is already up to date — nothing to do."
+    return 0
+  fi
+  mkdir -p "$CLAUDE_DIR"
+  backup_if_exists "$dest"
+  cp "$SRC/$name/CLAUDE.md" "$dest"
+  echo "installed $name -> $dest"
+}
+
+uninstall_claude_md_file() {
+  local name="$1"
+  rm -f "$CLAUDE_DIR/CLAUDE.md"
+  echo "removed $name"
 }
 
 uninstall_statusline_file() {

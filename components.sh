@@ -10,7 +10,6 @@
 
 ALL_COMPONENTS=(
   write-prd
-  spec-first-planning
   write-adr
   prepare-pr
   split-commits
@@ -18,21 +17,15 @@ ALL_COMPONENTS=(
   port-ios-to-web
   port-web-to-ios
   doc-sync
-  planner
-  explorer
-  reviewer
-  doc-writer
-  docs
-  walkthroughs
   statusline
+  global-rules
 )
 
 is_known_component() {
   case "$1" in
-    write-prd|spec-first-planning|write-adr|prepare-pr|split-commits| \
+    write-prd|write-adr|prepare-pr|split-commits| \
     device-logs|port-ios-to-web|port-web-to-ios|doc-sync| \
-    planner|explorer|reviewer|doc-writer| \
-    docs|walkthroughs|statusline)
+    statusline|global-rules)
       return 0 ;;
     *)
       return 1 ;;

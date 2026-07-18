@@ -7,14 +7,15 @@ description: >
   for: "start a new project", "define the product", "write a PRD", "product requirements",
   "I want to build X", "new feature", "figure out the requirements", "scope this out". Covers
   problem framing, user/persona discovery, success metrics, non-goals, and constraints, then
-  hands off to spec-first-planning. Do NOT trigger for trivial changes (typos, one-line fixes,
+  hands off to plan-first work. Do NOT trigger for trivial changes (typos, one-line fixes,
   obvious bugs), when a PRD for this work already exists, or for a pure implementation request
   where requirements are already settled.
-argument-hint: [product-or-feature name]
+argument-hint: >
+  [product-or-feature name]
 ---
 
 Turn a raw need into a Product Requirements Document by interviewing the user, then hand the
-approved PRD to `spec-first-planning`. This runs *before* planning: it decides *what* to build
+approved PRD to plan-first work. This runs *before* planning: it decides *what* to build
 and *why*; planning decides *how*.
 
 This skill runs inline in the main session — not via a subagent — because the interview needs
@@ -45,7 +46,7 @@ live `AskUserQuestion` round-trips, and subagents can't prompt the user.
      still open?
 
    When the user leaves something undecided, record it under **Open questions** in the PRD
-   rather than silently picking an answer — the same discipline `spec-first-planning` uses. A
+   rather than silently picking an answer — the same discipline plan-first work uses. A
    deferred decision surfaced is better than a wrong one buried.
 
 3. **Write the PRD** to `docs/prd/NNNN-slug.md`, where `NNNN` is the next unused four-digit
@@ -56,8 +57,9 @@ live `AskUserQuestion` round-trips, and subagents can't prompt the user.
 4. **Review.** Present the PRD and let the user amend it before moving on. Requirements are
    cheap to change here and expensive to change after planning and code exist.
 
-5. **Hand off.** Once the user approves the PRD, invoke the `spec-first-planning` skill with the
-   PRD as the goal input, so the approved requirements flow straight into a spec and checklist.
+5. **Hand off.** Once the user approves the PRD, apply the plan-first working method (short spec
+   + ordered checklist, per `~/.claude/CLAUDE.md`) to the PRD as the goal input, so the approved
+   requirements flow straight into a spec and checklist.
 
 ## PRD template
 
