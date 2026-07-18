@@ -10,9 +10,7 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=components.sh
 source "$here/components.sh"
-# shellcheck source=common.sh
 source "$here/common.sh"
 
 usage() {
