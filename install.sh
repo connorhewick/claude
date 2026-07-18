@@ -30,6 +30,9 @@ install_port_web_to_ios()     { install_skill  port-web-to-ios; }
 install_doc_sync()            { install_skill  doc-sync; }
 install_statusline()          { install_statusline_file statusline; }
 install_global_rules()        { install_claude_md_file global-rules; }
+install_git_rules()           { install_rule git-rules; }
+install_swiftui_rules()       { install_rule swiftui-rules; }
+install_documentation_rules() { install_rule documentation-rules; }
 
 run_installer() {
   case "$1" in
@@ -43,6 +46,9 @@ run_installer() {
     doc-sync)             install_doc_sync ;;
     statusline)           install_statusline ;;
     global-rules)         install_global_rules ;;
+    git-rules)            install_git_rules ;;
+    swiftui-rules)        install_swiftui_rules ;;
+    documentation-rules)  install_documentation_rules ;;
     *)
       echo "install.sh: unknown component '$1'" >&2
       exit 1

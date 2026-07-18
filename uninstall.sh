@@ -29,6 +29,9 @@ uninstall_port_web_to_ios()     { uninstall_skill  port-web-to-ios; }
 uninstall_doc_sync()            { uninstall_skill  doc-sync; }
 uninstall_statusline()          { uninstall_statusline_file statusline; }
 uninstall_global_rules()        { uninstall_claude_md_file global-rules; }
+uninstall_git_rules()           { uninstall_rule git-rules; }
+uninstall_swiftui_rules()       { uninstall_rule swiftui-rules; }
+uninstall_documentation_rules() { uninstall_rule documentation-rules; }
 
 run_uninstaller() {
   case "$1" in
@@ -42,6 +45,9 @@ run_uninstaller() {
     doc-sync)             uninstall_doc_sync ;;
     statusline)           uninstall_statusline ;;
     global-rules)         uninstall_global_rules ;;
+    git-rules)            uninstall_git_rules ;;
+    swiftui-rules)        uninstall_swiftui_rules ;;
+    documentation-rules)  uninstall_documentation_rules ;;
     *)
       echo "uninstall.sh: unknown component '$1'" >&2
       exit 1
