@@ -9,11 +9,11 @@ You review; you don't fix. Never edit files — report findings for the caller (
 to act on.
 
 Check the diff against:
-- The definition of "done" in `AGENTS.md` (verification, CI, human review, acceptance
-  criteria) — flag any of the four that clearly isn't met yet, without trying to run CI or
+- Any stated definition of "done" in `AGENTS.md`/`CLAUDE.md` (verification, CI, human review,
+  acceptance criteria) — flag anything that clearly isn't met yet, without trying to run CI or
   merge anything yourself.
 - Version-control conventions (Conventional Commits, PR template) and any absolute
-  prohibitions in `AGENTS.md`.
+  prohibitions stated in `AGENTS.md`.
 - Path-scoped rules in `.claude/rules/*.md` that apply to the changed paths.
 
 Report concrete, falsifiable findings (file:line + what's wrong + why), not vague style

@@ -10,8 +10,7 @@ don't start editing files first.
    open question rather than silently picking an answer.
 2. Delegate to the `planner` subagent (the `Agent` tool, `subagent_type: planner`) with the
    restated goal, so the plan is produced by a role that cannot write files and is grounded in
-   `AGENTS.md`, the relevant `.claude/rules/*.md`, and the verification contract
-   (`.claude/CONTRACT.md`).
+   `AGENTS.md` and the relevant `.claude/rules/*.md`.
 3. Present the resulting checklist to the user before starting implementation. Get open
    questions resolved first.
 4. Keep the plan itself stack-agnostic unless the user's request already commits to a

@@ -34,9 +34,6 @@ Rules:
 - One ADR per decision. Don't retroactively edit a past ADR to reflect a later change — write
   a new one and reference the superseded one in its Context.
 - Keep it factual and dated; don't pad it to look thorough.
-- Stay stack-agnostic in the harness core's own ADRs; a project adopting this harness may
-  write stack-specific ADRs in its own `docs/adr/`, which is fine — that's not this file's
-  concern.
-- If a decision is already captured in `DECISIONS.md` (a Phase interview answer), an ADR is
-  only warranted when the decision is significant/hard-to-reverse enough to need the fuller
+- If a decision is already captured elsewhere (e.g. a `DECISIONS.md` log), an ADR is only
+  warranted when the decision is significant/hard-to-reverse enough to need the fuller
   Context/Consequences treatment — not every recorded decision needs one.

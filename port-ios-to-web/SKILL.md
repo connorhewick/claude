@@ -185,11 +185,11 @@ share sheet), pick the degraded behavior from §2 and note the delta.
 
 ## 7 — Verify & walkthrough
 
-- Run the verification contract (`.claude/verify`) for every stage relevant
-  to the change (per `AGENTS.md` definition of done).
+- Run whatever this project uses to verify changes (tests, lint, build) for
+  every stage relevant to the change.
 - Do the walkthrough + interview from `CLAUDE.md`: narrate the port in review
   order (foundation → shell → screens), reference `file:line`, ask about
   anything ambiguous, and incorporate the answers before opening a PR.
 
-Not done until the plan's milestones are hit, the verification contract
-passes, CI is green, and a human has approved.
+Not done until the plan's milestones are hit, the project's own checks
+pass, CI is green, and a human has approved.
