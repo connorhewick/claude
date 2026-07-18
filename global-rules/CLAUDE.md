@@ -34,28 +34,11 @@ file it can't back up.
   3. **Incorporate** — apply the human's answers before converging the change or opening the PR.
 
   Skip it only for trivial changes (typos, one-line fixes) where there is nothing to decide.
+- In any given project, follow that project's own stated conventions
+  (`AGENTS.md`/`CLAUDE.md`/`.claude/rules/*.md`) over these defaults.
 
-## Version control
-
-- Use Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`) on every
-  commit. Never commit or push unless asked.
-- When staged changes span more than one distinct concern or feature, split them into separate,
-  logical, atomic commits rather than one mixed commit — present the split as a plan and get
-  approval before committing.
-- Start new feature work on its own feature branch, never directly on the branch you happen to
-  be on. When more than one feature is active at once, give each its own git worktree
-  (`EnterWorktree`/`ExitWorktree`) instead of stashing or switching branches in a single working
-  tree, so uncommitted work on one feature never blocks or bleeds into another.
-- Never push to a repo's default branch. Branch first, then open a pull request.
-- Keep an open PR's title and description accurate as its branch evolves. After pushing new
-  commits to a branch that already has an open PR, update the PR (`gh pr edit <number>
-  --title ... --body ...`) so it always describes the full current state of the branch — every
-  change on it — not just what existed when it was opened. A stale PR description is a review
-  hazard.
-- Don't edit files under a path marked read-only/generated/vendored, if a project declares one
-  (e.g. generated lockfiles, vendored dependency dirs, a build output directory).
-- In any given project, otherwise follow that project's own stated conventions
-  (`AGENTS.md`/`CLAUDE.md`/`.claude/rules/*.md`).
+Git/version-control conventions (commit format, branching, worktrees, PR hygiene) live in the
+separate `git-rules` component, not here — see `~/.claude/rules/git-rules.md`.
 
 <!-- Add your personal preferences below this line; re-running install.sh global-rules backs up
      the whole file before replacing it, so your additions are recoverable from the .bak copy. -->
@@ -80,23 +63,40 @@ don't start editing files first.
 Do not skip straight to implementation on a multi-step task just because the shape of the
 change seems obvious — a wrong early assumption is more expensive to unwind after code exists.
 
-## Documentation conventions
+Documentation conventions (ADRs, ticket/doc naming) live in the separate `documentation-rules`
+component — see `~/.claude/rules/documentation-rules.md`. SwiftUI conventions live in
+`swiftui-rules` — see `~/.claude/rules/swiftui-rules.md`.
 
-- Write an ADR for any significant or hard-to-reverse architectural decision (new dependency,
-  schema change, cross-cutting refactor, choice between competing approaches). Use the
-  `write-adr` skill if available; otherwise use a lightweight context/decision/consequences
-  template.
-- Keep documentation for a stack-agnostic core language/framework-agnostic. Stack-specific
-  documentation belongs alongside the stack-specific code, not mixed into shared docs.
-- Prefer short descriptive names over bare identifiers when referencing tickets (Jira, etc.) or
-  documents (PRDs, ADRs). Use `PROJ-142-oauth-token-refresh` rather than `PROJ-142`, and
-  `ADR4-postgres-over-dynamo` rather than `ADR4`. The description makes the reference
-  self-explanatory when resuming a session's task later, without needing to re-open the ticket
-  or document to recall what it covers.
+# Engineering conventions
 
-## SwiftUI
+## Definition of done
 
-- Always include a working `#Preview` when writing or editing a SwiftUI `View` — the SwiftUI
-  equivalent of verifying a UI change in a browser before calling it done.
-- Keep the Xcode project's `ENABLE_PREVIEWS` build setting `YES` (the modern Xcode default);
-  don't disable it.
+A change is done only when **all** of the following hold:
+- Any checks this repo defines for itself (shellcheck, a dry-run install/uninstall) pass.
+- CI is green.
+- A human has reviewed and approved the change.
+- The task's stated acceptance criteria are met.
+
+None of these alone is sufficient. Do not declare a task complete on partial satisfaction of
+this list.
+
+## Code walkthrough + interview (human in the loop)
+
+Before handing a non-trivial change off for review or a PR — and before treating it as done —
+walk the human through it and interview them for the decisions only they can make. This is the
+mechanism for the "a human has reviewed and approved" clause of the definition of done above,
+and the convergence checkpoint when work is fanned out across parallel agents. Don't skip it on
+multi-file, cross-cutting, or hard-to-reverse changes.
+
+Run it in three steps:
+
+1. **Walkthrough** — narrate the change in review order: the problem it solves, the key files
+   and the path through them, and the decision points or trade-offs taken along the way.
+   Reference code as `file:line`. Lead with the shape of the change, not a line-by-line dump.
+2. **Interview** — ask the questions whose answers you couldn't safely assume: choices between
+   viable approaches, scope you're unsure is in or out, and anything you inferred rather than
+   were told. Use `AskUserQuestion`; record deferred answers as open questions instead of
+   guessing.
+3. **Incorporate** — apply the human's answers before converging the change or opening the PR.
+
+Skip it only for trivial changes (typos, one-line fixes) where there is nothing to decide.

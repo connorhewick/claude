@@ -19,13 +19,16 @@ ALL_COMPONENTS=(
   doc-sync
   statusline
   global-rules
+  git-rules
+  swiftui-rules
+  documentation-rules
 )
 
 is_known_component() {
   case "$1" in
     write-prd|write-adr|prepare-pr|split-commits| \
     device-logs|port-ios-to-web|port-web-to-ios|doc-sync| \
-    statusline|global-rules)
+    statusline|global-rules|git-rules|swiftui-rules|documentation-rules)
       return 0 ;;
     *)
       return 1 ;;

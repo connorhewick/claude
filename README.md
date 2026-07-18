@@ -35,8 +35,11 @@ Re-running `install.sh` is safe — anything it would overwrite gets backed up f
 | [`doc-sync`](doc-sync) | skill | `~/.claude/skills/doc-sync/` | Audits docs against code for drift; reports or fixes (bundles its own explorer/planner/doc-writer/reviewer role-prompts) |
 | [`statusline`](statusline) | statusline | `~/.claude/statuslines/statusline.sh` | Folder, git branch, model, effort, context bar, tokens, cache %, cost, rate limit |
 | [`global-rules`](global-rules) | global-rules | `~/.claude/CLAUDE.md` | Personal cross-project defaults, loaded in every project on this machine |
+| [`git-rules`](git-rules) | rule | `~/.claude/rules/git-rules.md` | Personal git/version-control conventions: commits, branches, worktrees, PR hygiene |
+| [`swiftui-rules`](swiftui-rules) | rule | `~/.claude/rules/swiftui-rules.md` | SwiftUI `#Preview` conventions, scoped to `**/*.swift` so it's inert elsewhere |
+| [`documentation-rules`](documentation-rules) | rule | `~/.claude/rules/documentation-rules.md` | Personal documentation conventions: ADRs, ticket/doc naming |
 
-Three more component types are supported by `install.sh`/`uninstall.sh` but have no example yet:
+Two more component types are supported by `install.sh`/`uninstall.sh` but have no example yet:
 
 | Type | Source file | Installs to |
 |---|---|---|
