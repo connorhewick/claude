@@ -34,7 +34,7 @@ Re-running `install.sh` is safe — anything it would overwrite gets backed up f
 | [`port-ios-to-web`](port-ios-to-web) | skill | `~/.claude/skills/port-ios-to-web/` | Ports an iOS app to an equivalent web app |
 | [`port-web-to-ios`](port-web-to-ios) | skill | `~/.claude/skills/port-web-to-ios/` | Ports a web app to an equivalent iOS app |
 | [`doc-sync`](doc-sync) | skill | `~/.claude/skills/doc-sync/` | Audits docs against code for drift; reports or fixes (bundles its own explorer/planner/doc-writer/reviewer role-prompts) |
-| [`session-handoff`](session-handoff) | skill | `~/.claude/skills/session-handoff/` | Writes a structured handoff doc capturing session context so a fresh session can pick up where this one left off |
+| [`session-handoff`](session-handoff) | skill | `~/.claude/skills/session-handoff/` | Writes a session handoff doc, plus a harness-feedback doc (`~/.claude/harness-feedback/`) on what to keep/change about the Claude Code setup itself |
 | [`component-review`](component-review) | skill | `~/.claude/skills/component-review/` | Audits this repo's own components against `CLAUDE.md`'s type-decision and authoring conventions |
 | [`ios-engineering`](ios-engineering) | skill | `~/.claude/skills/ios-engineering/` | Native iOS/Swift engineering: MVVM scaffolding, SwiftUI, Core Data, networking, concurrency, security, performance, testing (bundles 9 topic references) |
 | [`statusline`](statusline) | statusline | `~/.claude/statuslines/statusline.sh` | Folder, git branch, model, effort, context bar, tokens, cache %, cost, rate limit |
