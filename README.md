@@ -51,6 +51,41 @@ Two more component types are supported by `install.sh`/`uninstall.sh` but have n
 | hook | `<name>/hook.sh` + `<name>/hook.json` | `~/.claude/hooks/<name>.sh`, plus a merged entry under `~/.claude/settings.json`'s `.hooks.<event>` |
 | output style | `<name>/output-style.md` | `~/.claude/output-styles/<name>.md` |
 
+## Using components in a session
+
+Once installed to `~/.claude/` (or `$CLAUDE_CONFIG_DIR`), components activate the same way in
+any stock Claude Code session — no project-level `.claude/` setup, hooks, or extra config
+required. How you interact with each depends on its type:
+
+- **Rules** and **global-rules** need no invocation at all. A path-scoped rule
+  (`swiftui-rules`) enters context automatically the moment you touch a matching file;
+  `global-rules` (`~/.claude/CLAUDE.md`) loads unconditionally in every session. The harness
+  does this for you — there's nothing to type.
+- **Skills** trigger two ways: automatically, when your request's phrasing matches the skill's
+  `description` (the "Triggers for" list in its frontmatter), or explicitly with `/<name>`. Most
+  skills in this repo (`write-prd`, `write-adr`, `split-commits`, `ios-engineering`,
+  `session-handoff`, `port-ios-to-web`, `port-web-to-ios`, `component-review`) are written to
+  auto-trigger — describe what you want in plain language and the matching skill fires on its
+  own. A few are deliberately explicit-only (`disable-model-invocation: true`), because the
+  action is too consequential to fire without you naming it: `device-logs`, `doc-sync`,
+  `prepare-pr`.
+- **Statuslines** and **output styles** activate once selected (`/statusline`, `/output-style`)
+  and then persist for the session without further invocation.
+- **Agents** (the `agent.md` extension point — no example component ships in this repo yet)
+  are never run directly by you. Claude spawns them via its own `Agent`/`Task` tool when a
+  request matches their description, the same way built-in agents like `Explore` are spawned.
+- **Slash commands** and **hooks** (also no example yet) are explicit- and event-driven
+  respectively: a command only runs when you type `/<name>`; a hook only runs when its
+  configured harness event fires (tool use, session stop, …) — neither responds to natural
+  language.
+
+Prefer the auto-triggering path where it exists: phrase requests the way a skill's
+`description` expects (e.g. "write a PRD for X" for `write-prd`, "these are two different
+changes, split them up" for `split-commits`) rather than memorizing slash names. If a skill
+that should have fired didn't, check its `description` for the trigger phrases it actually
+listens for — see "Writing components for the harness" in `CLAUDE.md` for why that field, not
+the skill body, is what decides whether it activates.
+
 ## Adding a new component
 
 1. Create `<name>/` with its source file (`SKILL.md`, `agent.md`, `rule.md`, `command.md`,
