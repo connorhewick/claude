@@ -144,11 +144,9 @@ extension JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
             let string = try decoder.singleValueContainer().decode(String.self)
-            let iso = ISO8601DateFormatter()
-            iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            if let date = iso.date(from: string) { return date }
-            iso.formatOptions = [.withInternetDateTime]   // server omits millis sometimes
-            if let date = iso.date(from: string) { return date }
+            let withFractionalSeconds = Date.ISO8601FormatStyle(includingFractionalSeconds: true)
+            if let date = try? withFractionalSeconds.parse(string) { return date }
+            if let date = try? Date.ISO8601FormatStyle().parse(string) { return date }  // server omits millis sometimes
             throw DecodingError.dataCorrupted(.init(
                 codingPath: decoder.codingPath,
                 debugDescription: "Unrecognized date: \(string)"))
@@ -157,6 +155,8 @@ extension JSONDecoder {
     }()
 }
 ```
+
+Prefer `Date.ISO8601FormatStyle` over `ISO8601DateFormatter` in new code: it's a `Sendable` value type with no mutable `formatOptions` to race on, versus the older NSObject-based formatter.
 
 ### Custom init(from:) to flatten nesting
 
