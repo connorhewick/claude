@@ -86,7 +86,7 @@ abandoned-but-reachable memory, which is more common than true leaks.
 | Memory growth / jetsam kills | Allocations with generation marking; Leaks for cycles; memgraph for who-retains-whom |
 | Battery complaints | Energy Log + Network instrument (radio wake-ups dominate) |
 | Slow specific operation | `os_signpost` around it + Time Profiler; `XCTMeasure` to lock in the win |
-| Core Data slowness | Core Data instrument (fetch counts, faulting churn) — see `coredata-schema-designer.md` |
+| SwiftData/Core Data slowness | Core Data instrument (fetch counts, faulting churn — applies to SwiftData's underlying store too) — see `swiftdata-schema-designer.md` |
 
 ### Optimize vs. ship
 
