@@ -6,7 +6,7 @@ Implement Keychain, biometric auth, ATS/pinning, and secure credential handling 
 
 ## Overview
 
-iOS security work is mostly *choosing the right shelf for each secret and the right gate for each action* — then resisting the urge to add theater. The platform already gives you strong primitives (Keychain, Data Protection, ATS, Secure Enclave); your job is to use them with the correct protection classes and to be honest about what each measure defends against. Every recommendation here is framed as: what attacker does this stop, and what does it cost in operability? A measure you can't articulate a threat for is complexity, not security.
+iOS security work is mostly *choosing the right shelf for each secret and the right gate for each action* — then resisting the urge to add theater. The platform already gives you strong primitives (Keychain, Data Protection, ATS, Secure Enclave, Memory Integrity Enforcement); your job is to use them with the correct protection classes and to be honest about what each measure defends against. Every recommendation here is framed as: what attacker does this stop, and what does it cost in operability? A measure you can't articulate a threat for is complexity, not security.
 
 ## Core Concepts
 
@@ -16,13 +16,15 @@ iOS security work is mostly *choosing the right shelf for each secret and the ri
 
 **Biometrics gate; they don't encrypt — unless you bind them via the Keychain.** `LAContext.evaluatePolicy` returns a Bool: a jailbroken device or a tampered binary can skip it. It's UX-grade gating for actions the server will still authorize. For real cryptographic binding, store the secret as a Keychain item with `SecAccessControlCreateWithFlags(..., .biometryCurrentSet)` — then the Secure Enclave releases the item only after biometry, and enrolling a new fingerprint invalidates it. Use `.deviceOwnerAuthentication` (biometry *or* passcode) for login-grade gates so users with failed Face ID aren't locked out; reserve `.deviceOwnerAuthenticationWithBiometrics` + `.biometryCurrentSet` for high-value items where new-enrollment invalidation is the point.
 
-**ATS is the floor; pinning is an opt-in trade.** ATS (on by default) enforces TLS 1.2+, forward secrecy, and certificate validity. Every `NSAllowsArbitraryLoads` exception is a finding in any security review — scope exceptions per-domain and document why. Certificate pinning defends against *compromised or coerced CAs* and corporate MITM proxies — a real but narrow threat. Its cost is brutal: pin to a leaf cert and a routine renewal bricks your app's networking until users update. If you pin, pin the **SPKI (public key) of an intermediate or your own CA, ship a backup pin, and build a kill switch/remote config** before shipping. Many apps are better served by ATS + token binding than by pinning they can't operate.
+**ATS is the floor; pinning is an opt-in trade.** ATS (on by default) enforces TLS 1.2+, forward secrecy, and certificate validity. Every `NSAllowsArbitraryLoads` exception is a finding in any security review — scope exceptions per-domain and document why. Certificate pinning defends against *compromised or coerced CAs* and corporate MITM proxies — a real but narrow threat. Its cost is brutal: pin to a leaf cert and a routine renewal bricks your app's networking until users update. If you pin, pin the **SPKI (public key) of an intermediate or your own CA, ship a backup pin, and build a kill switch/remote config** before shipping. Implement it declaratively with `NSPinnedDomains` in Info.plist (`NSPinnedCAIdentities`/`NSPinnedLeafIdentities`, iOS 14+) rather than hand-rolled `URLSessionDelegate` trust evaluation — it's less code to get wrong, but it's static, so the kill switch has to live server-side (route traffic around the pinned host) rather than in the declaration itself. Many apps are better served by ATS + token binding than by pinning they can't operate.
 
 **Secrets don't belong in the binary.** API keys in source or `Info.plist` are extractable with `strings` in seconds; obfuscation only raises effort slightly. Hierarchy of honesty: (1) keep the secret server-side and proxy the call; (2) deliver short-lived credentials post-authentication; (3) if a key must ship, treat it as *public* and enforce limits server-side (quotas, bundle-ID checks, attestation via `DCAppAttestService`). Never grade an embedded key as "secure."
 
 **PII leaks through side doors.** Crash reporters upload breadcrumbs and logs; `print`/default-privacy `os_log` interpolations are visible in sysdiagnoses; screenshots of sensitive screens persist in the app switcher snapshot. Use `os.Logger` with `\(value, privacy: .private)`, scrub crash-reporter metadata, and overlay/blur sensitive views on `willResignActive`.
 
 **Jailbreak detection is friction, not a boundary.** On a jailbroken device the OS guarantees are gone — detection (suspicious paths, sandbox-escape writes, `fork()` success) is trivially hookable. It's worth adding only as a *risk signal* for high-compliance apps (banking, PCI-DSS) feeding server-side risk scoring — never as the thing your security depends on. Same for tamper checks: prefer Apple's App Attest, which the server verifies, over client-side self-checks.
+
+**Memory Integrity Enforcement raises the floor against memory-corruption exploits — opt in explicitly.** iOS 26 hardware (A19, A19 Pro, M5) tags every heap allocation and traps on a mismatched access at the silicon level, closing the buffer-overflow/use-after-free class that underpins most zero-click jailbreak and spyware chains — but it isn't automatic for your binary. Add Xcode's **Enhanced Security** capability (`com.apple.security.hardened-process.checked-allocations`); ship **Hard Mode** in production (terminate on mismatch) and reserve **Soft Mode** (the `...soft-mode` variant, logs instead of crashing) for pre-release triage of false positives in unsafe/legacy allocation paths. It complements App Attest and jailbreak signals — none of the three substitutes for the other two.
 
 **Randomness:** `SecRandomCopyBytes` or `SystemRandomNumberGenerator` (which uses it) for anything security-relevant — never seed your own.
 
@@ -48,6 +50,11 @@ Pin or not?
 - Threat includes coerced CAs / hostile networks for high-value data (banking, health) **and** you control cert rotation + have remote kill switch → pin SPKI of intermediate + backup pin.
 - Otherwise → ATS defaults, zero exceptions, short-lived tokens.
 
+Enable Memory Integrity Enforcement?
+
+- Shipping on A19/A19 Pro/M5 hardware → yes by default; add the Enhanced Security capability, ship Hard Mode.
+- Migrating a codebase with known unsafe/legacy allocation patterns → Soft Mode temporarily to triage crashes, never as the shipping configuration.
+
 ## Workflow
 
 1. **Read the existing code.** Inventory current storage (`grep` for `UserDefaults`, `kSecClass`, hardcoded keys/`Bearer `, `NSAllowsArbitraryLoads` in Info.plist), auth flow, crash/logging SDKs, and compliance context (payments → PCI-DSS, health → HIPAA-adjacent, finance → SOX audit trails).
@@ -55,7 +62,7 @@ Pin or not?
 3. **Migrate misplaced secrets** to Keychain (read old location → write Keychain → delete old → never write old again). Remember Keychain items survive app reinstall — decide whether first-launch should purge them.
 4. **Implement the Keychain wrapper** (pattern below) — one small, tested type; no third-party dependency needed for simple needs.
 5. **Add biometric gating/binding** where the threat model calls for it, with a passcode fallback decision made explicitly.
-6. **Review the transport layer**: ATS exceptions justified or deleted; pinning decision documented with rotation plan (implementation hooks live in `ios-networking.md`'s session delegate).
+6. **Review the transport layer**: ATS exceptions justified or deleted; pinning decision documented with rotation plan (declarative `NSPinnedDomains` preferred; delegate-based implementation hooks live in `ios-networking.md`'s session delegate).
 7. **Sweep side channels**: logging privacy levels, crash-report scrubbing, app-switcher snapshot, pasteboard use (`UIPasteboard` with `localOnly`/expiry for sensitive copies).
 8. **Verify against the Quality Checklist**, and run the app once from a fresh install to confirm Keychain residue and protection classes behave as intended.
 
@@ -197,6 +204,7 @@ try FileManager.default.setAttributes(
 | Background refresh crashes with `errSecInteractionNotAllowed` | Secret stored `whenUnlocked` but read while device locked | Use `.afterFirstUnlockThisDeviceOnly` for that one item — not as a global default |
 | App-wide outage after certificate renewal | Pinned the leaf certificate | Pin intermediate/CA SPKI hashes, ship a backup pin, add remote kill switch; rehearse rotation |
 | "Biometrics secured" feature bypassed on jailbroken device | `evaluatePolicy` Bool treated as encryption | Bind via Keychain `SecAccessControl(.biometryCurrentSet)`; server authorizes regardless |
+| App exploited via memory corruption despite iOS 26 hardware | Enhanced Security / Memory Integrity Enforcement capability never added | Add the capability in Xcode, ship Hard Mode in production, use Soft Mode only for pre-release triage |
 | API key extracted and abused | Key embedded in binary, graded as secret | Proxy server-side or treat as public: quotas, bundle checks, App Attest |
 | PII in crash dashboards | Default `os_log` privacy / breadcrumbs with emails | `privacy: .private`, scrub crash-reporter user metadata, audit breadcrumb calls |
 | Sensitive screen visible in app switcher | No snapshot handling | Overlay a blur/cover view on `willResignActive`, remove on `didBecomeActive` |
@@ -208,7 +216,7 @@ try FileManager.default.setAttributes(
 - [ ] No token, password, or key in `UserDefaults`, plist, or source — grep proves it
 - [ ] Every Keychain item has an explicitly chosen accessibility class; `ThisDeviceOnly` unless backup migration is a documented requirement
 - [ ] Release Info.plist contains zero ATS exceptions (or each one is per-domain, justified in writing)
-- [ ] If pinning: SPKI pins (not leaf certs), backup pin shipped, rotation runbook + kill switch exist
+- [ ] If pinning: implemented via `NSPinnedDomains` where possible, SPKI/intermediate pins (not leaf certs), backup pin shipped, rotation runbook + kill switch exist
 - [ ] Biometric flows distinguish gating (`LAContext`) from binding (`SecAccessControl`) and each use is the intended one
 - [ ] Biometry fallback decided explicitly: passcode allowed, or lockout path designed
 - [ ] Keychain residue after reinstall handled deliberately (purge or keep — chosen, not accidental)
@@ -217,4 +225,5 @@ try FileManager.default.setAttributes(
 - [ ] App-switcher snapshot covered for sensitive screens; sensitive pasteboard writes use `localOnly` + expiry
 - [ ] All security-relevant randomness from `SecRandomCopyBytes`/system RNG
 - [ ] Jailbreak/tamper checks (if any) feed server-side risk decisions — nothing client-side is a trust boundary
+- [ ] Enhanced Security / Memory Integrity Enforcement capability added for A19/A19 Pro/M5 hardware; Hard Mode in production, Soft Mode only pre-release
 - [ ] Compliance mapping done where applicable (PCI-DSS: no PAN storage client-side; SOX: auth events auditable server-side)
