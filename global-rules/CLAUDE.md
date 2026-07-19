@@ -13,8 +13,18 @@ file it can't back up.
 
 - Plan-first on non-trivial work (3+ steps or an architectural choice): write a short spec and a
   checklist before editing. If the approach stops working, stop and re-plan rather than pushing on.
-- Keep the main context clean by delegating research and parallel investigation to subagents —
-  one focused task per subagent.
+- Keep the main context clean by delegating research, parallel investigation, and isolated
+  multi-step work to subagents — one focused task per subagent, not a vague "look into X."
+  - Delegate when the work is read-only investigation, spans independent areas that can run in
+    parallel, or would otherwise pollute the main context with exploration detail the parent
+    doesn't need to keep. Keep it inline when the task needs to interview the user (subagents
+    can't call `AskUserQuestion`), needs context the parent has already built that costs more to
+    re-derive than to reuse, or is a single trivial step.
+  - Hand off relevant components rather than expecting a subagent to find them: before
+    dispatching, identify which installed skills/rules the task needs and put their names and
+    operative instructions directly in the subagent's prompt.
+  - Run independent subagents in parallel, in one dispatch; run them sequentially only when one
+    needs a prior one's output. Converge results back in the main session before acting on them.
 - Definition of done: a change is done only when the relevant checks/tests pass, a human has
   reviewed and approved it, and the task's stated acceptance criteria are met — none of these
   alone is sufficient. Don't declare something done on partial satisfaction of this list.
