@@ -1,14 +1,69 @@
 # iOS Enterprise Service Generator
 
-Scaffolds protocol-first service layers for iOS apps: View → ViewModel → Service → Client/Store, wired with initializer injection and shipped with mocks.
+Chooses the right architecture, then scaffolds protocol-first service layers for iOS apps — MVVM
+by default (View → ViewModel → Service → Client/Store), wired with initializer injection and
+shipped with mocks.
 
 ---
 
 ## Overview
 
-This skill scaffolds the layer most iOS codebases get wrong: the seam between UI and data. The architecture is deliberately boring — **View → ViewModel → Service → Client/Store** — with a protocol at every downward dependency and all wiring done through initializers. The payoff is mechanical: any ViewModel can be unit-tested with a three-line mock, and swapping REST for GraphQL or Core Data for an in-memory store touches exactly one file (the composition root). The philosophy: protocols are for *seams you actually test or swap*, not ceremony; injection is explicit (initializers), not magical (singletons, property wrappers that hide dependencies).
+This skill scaffolds the layer most iOS codebases get wrong: the seam between UI and data. The
+default architecture is deliberately boring — **View → ViewModel → Service → Client/Store** —
+with a protocol at every downward dependency and all wiring done through initializers. The
+payoff is mechanical: any ViewModel can be unit-tested with a three-line mock, and swapping REST
+for GraphQL or SwiftData for an in-memory store touches exactly one file (the composition root).
+The philosophy: protocols are for *seams you actually test or swap*, not ceremony; injection is
+explicit (initializers), not magical (singletons, property wrappers that hide dependencies). MVVM
+is the default because it fits most enterprise SwiftUI codebases — but it isn't the only correct
+answer; see Architecture Choice below before assuming it for a fresh module or an unfamiliar
+codebase.
+
+## Architecture Choice
+
+Pick the architecture before scaffolding a layer inside it — retrofitting after the fact costs
+far more than choosing right up front. Five patterns cover the large majority of iOS codebases:
+
+- **MVVM (this skill's default).** View → ViewModel → Service → Client/Store, protocols at every
+  seam. Fits when there's real logic worth unit-testing (validation, loading-state transitions,
+  multi-step flows) and the team wants that logic testable without rendering a view. Everything
+  below this section assumes MVVM unless noted otherwise.
+- **MV (no ViewModel).** `@State` holding an `@Observable` model, or plain `@State` + `let`
+  parameters, with the view binding directly — no per-screen ViewModel type. Appropriate for
+  views that are mostly presentational: a ViewModel that only proxies model properties into view
+  state is ceremony, not architecture, now that `@Observable` already gives fine-grained,
+  per-property view invalidation (see `swiftui-patterns.md`). Don't introduce a ViewModel for a
+  screen that would just forward calls.
+- **TCA (The Composable Architecture).** A third-party unidirectional-data-flow library: state,
+  actions, and reducers as pure functions, with effects handled explicitly. Appropriate when
+  business logic needs exhaustive, deterministic unit testing (every state transition is a pure
+  function you can assert on), time-travel debugging matters, or the team already has TCA
+  expertise. Costs: a real external dependency, a steeper ramp for contributors unfamiliar with
+  it, and more ceremony than most CRUD-shaped screens need — don't reach for it because it's
+  fashionable, reach for it because the reducer model's guarantees solve a problem you actually
+  have.
+- **VIPER / Clean Swift.** Strict per-module separation (View, Interactor, Presenter, Entity,
+  Router) enforcing single-responsibility boundaries across many contributors. Appropriate for
+  very large, UIKit-era teams that need those boundaries enforced structurally rather than by
+  convention. Heavier than SwiftUI-era codebases usually need for new work — mostly relevant when
+  extending an existing VIPER app, not starting one.
+- **Legacy MVC (UIKit).** `UIViewController` owns view logic, model access, and often networking
+  directly. Not a target for new work, but the correct choice when extending an existing UIKit
+  screen that's already built this way — don't introduce MVVM or TCA into one corner of a
+  ViewController-owns-everything codebase for a single feature.
+
+| Situation | Choose | Why |
+|---|---|---|
+| Default for a new SwiftUI feature/app, or no strong existing pattern | MVVM | Testable logic layer, matches most existing enterprise codebases, this skill scaffolds it directly |
+| Mostly-presentational view, little logic worth unit-testing on its own | MV (no ViewModel) | A pass-through ViewModel is ceremony; `@Observable` already gives the view fine-grained reactivity |
+| Business logic needs exhaustive deterministic testing, time-travel debugging, or the team already uses TCA | TCA | Reducers make every transition a pure, testable function — at the cost of a dependency and a steeper ramp |
+| Very large team enforcing strict per-module boundaries, especially an existing UIKit/VIPER codebase | VIPER / Clean Swift | Enforced separation scales team boundaries; heavier ceremony than most new SwiftUI work needs |
+| Extending existing UIKit screens already built this way | Legacy MVC | Match what's there; don't introduce a second architecture for one feature |
+| Codebase already has an established architecture, of any kind | Match it | Consistency within a codebase beats theoretical purity — see this skill's Guardrails |
 
 ## Core Concepts
+
+The rest of this file assumes MVVM was the right call per the section above.
 
 **Layering is about direction of knowledge, not folders.** Views know ViewModels. ViewModels know service *protocols*. Services know client/store *protocols* plus domain rules. Clients/stores know URLSession or Core Data. Nothing knows anything upward, and nothing skips a layer — a View calling `URLSession` directly is the original sin this skill exists to prevent. The reason: every skipped layer is a dependency you can no longer fake in a test or swap in a migration.
 
@@ -39,10 +94,10 @@ This skill scaffolds the layer most iOS codebases get wrong: the seam between UI
 
 ## Workflow
 
-1. **Read the existing code.** Identify the app's current pattern (MVVM? MVC? TCA?), DI approach, networking layer, minimum iOS version (`@Observable` needs 17; below that use `ObservableObject`), naming conventions, and any existing mock-generation tooling (Mockolo config, Sourcery templates, a mocking package in `Package.swift`/Podfile). Extend what exists; never introduce a second architecture style — or a second mocking approach — for one feature.
+1. **Read the existing code, and decide the architecture if none is established.** Identify the app's current pattern (MVVM? MV? TCA? VIPER? MVC?) using the Architecture Choice section above — extend what's there rather than picking fresh if a pattern already exists. Also note DI approach, networking layer, minimum iOS version (`@Observable` needs 17; below that use `ObservableObject`), naming conventions, and any existing mock-generation tooling (Mockolo config, Sourcery templates, a mocking package in `Package.swift`/Podfile). Never introduce a second architecture style — or a second mocking approach — for one feature.
 2. **Name the domain and its operations.** Agree the service protocol surface first (e.g., `UserServicing: fetchUser, updateProfile`) — it is the contract everything else satisfies.
 3. **Generate the domain model** (plain struct) and, in the client layer, the Codable DTO + mapping if the wire format differs (see `swift-codable-designer.md`).
-4. **Generate the client/store protocol and concrete** (delegating HTTP details to `ios-networking.md`, or persistence to `coredata-schema-designer.md`).
+4. **Generate the client/store protocol and concrete** (delegating HTTP details to `ios-networking.md`, or persistence to `swiftdata-schema-designer.md`).
 5. **Generate the service**: concrete implementing the protocol, depending only on client/store protocols, holding the domain rules.
 6. **Generate the ViewModel**: `@MainActor @Observable`, initializer-injected service protocol, explicit `ViewState`.
 7. **Generate the View** (SwiftUI by default; UIKit ViewController if the codebase demands) rendering the `ViewState` exhaustively — see `swiftui-patterns.md`.
