@@ -32,7 +32,11 @@ with `@Observable`, fine-grained models are nearly free; with legacy `Observable
 had to split objects to limit blast radius. Prefer `@Observable` for all new code; keep
 `@StateObject`/`@ObservedObject` only where the deployment target forces it. Ownership still
 matters: hold an owned `@Observable` model in `@State`, pass it down as a plain `let`, and use
-`@Bindable` when a child needs bindings into it.
+`@Bindable` when a child needs bindings into it. For consuming state changes *outside* a view's
+`body` — persistence, logging, bridging to a widget — Swift 6.2's `Observations` turns an
+`@Observable` model's property reads into an `AsyncSequence` with transactional (did-set)
+semantics; reach for it instead of ad hoc `withObservationTracking` recursion, but don't use it
+inside `body` itself, where SwiftUI's own tracking already does the job.
 
 ### Identity decides whether views update or get rebuilt
 
@@ -77,7 +81,7 @@ models, where practical — narrower dependencies mean fewer re-evaluations.
 | Drill-down navigation, deep links, programmatic pop | `NavigationStack` with a typed `path` + `.navigationDestination` |
 | Modal, self-contained flow | `.sheet`/`.fullScreenCover` driven by `Optional` item state |
 | Large scrolling list of data | `List` (recycling, swipe actions) — default choice |
-| Heterogeneous lazy scroll content, custom styling | `LazyVStack` in `ScrollView` |
+| Heterogeneous lazy scroll content, custom styling | `LazyVStack`/`LazyVGrid` in `ScrollView` |
 | View model or plain view? | Logic worth unit testing → `@Observable` model; presentation only → `@State` + parameters |
 
 ## Workflow
@@ -186,7 +190,8 @@ struct CatalogView: View {
 ```
 
 Routes are `Hashable` data: deep links become `path = [.product(id), .reviews(id)]`, and
-pop-to-root is `path.removeAll()`.
+pop-to-root is `path.removeAll()`. To customize the push animation without touching identity,
+apply `.navigationTransition(.zoom)` for source-to-detail continuity.
 
 ### Stable identity in lists
 
