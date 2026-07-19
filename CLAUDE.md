@@ -78,6 +78,32 @@ Run this decision every time a component is about to be added, including:
 If the specified/existing type doesn't match what the criteria point to, say so and propose the
 right type before proceeding with the add.
 
+## Writing components for the harness
+
+Two properties of *how Claude Code loads a component* decide whether it's written well. Get
+either wrong and the component either taxes every session or fails to fire when it should.
+
+- **Match content depth to context cost.** As the type descriptions above note, a `rule` and
+  `global-rules` load their *whole body* into the context of every session they apply to (a
+  path-scoped rule whenever a matching file is touched, `global-rules` unconditionally), while a
+  `skill`/`agent` body loads only when the component is invoked. Design to that: keep
+  rule/`global-rules` bodies lean and operational — the standing constraint itself, nothing
+  more. Do not add historical or rationale prose to them (what a rule was split out of, why it's
+  shaped a certain way); that's a token cost paid on every session for information no one needs
+  mid-task. A component's "why" — design trade-offs, deliberate-decision markers, gotchas —
+  belongs in a `skill`/`agent` body, where it's free until triggered and sits at the decision
+  point. Rationale that must be recorded but fits nowhere operational goes in a commit message or
+  an ADR, never a rule body.
+- **For an auto-invocable skill, the `description` is the trigger gate — not the body.** The
+  `description` frontmatter is the text scanned to decide whether the skill fires; the body is
+  read only *after* it fires. So a guard buried in the body ("only do this when X") cannot
+  prevent a misfire — by then the skill is already chosen. Every auto-invocable skill's
+  `description` therefore needs both its positive trigger phrases *and* explicit `Do NOT trigger`
+  boundaries, and when you add or edit one, check its `description` against its siblings for
+  trigger collisions — two skills that could both plausibly fire on the same request. A skill
+  with `disable-model-invocation: true` fires only on an explicit `/name` and is exempt from all
+  of this; it can't misfire.
+
 ## Adding/removing components
 
 Adding or removing a top-level component is a single atomic change that touches all of:
