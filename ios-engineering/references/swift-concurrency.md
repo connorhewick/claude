@@ -1,6 +1,6 @@
 # Swift Concurrency Patterns
 
-Write Swift concurrent code (Swift 5.9+, iOS 17 era) that the compiler can prove
+Write Swift concurrent code (Swift 5.9–6.2+, iOS 17 era) that the compiler can prove
 data-race-free, that cancels cleanly, and that keeps the main thread responsive — not code
 that merely "works in testing."
 
@@ -12,7 +12,12 @@ boundaries, and a task tree for lifetime and cancellation. The core philosophy: 
 compiler prove safety instead of hoping reviewers spot races.** Every queue you would have
 reached for in GCD has a structured equivalent that is also cancellable and priority-aware.
 Prefer the structured form; reach for unstructured `Task {}` and locks only at well-justified
-boundaries.
+boundaries. As of Swift 6.2, **Approachable Concurrency and default actor isolation** (Xcode 26's
+default for new projects) invert the historical annotation direction — a module can default
+entirely to `@MainActor` and escape *to* background work explicitly instead of escaping *to*
+main explicitly. Both models are covered below: most of this file's guidance applies either way,
+and the Approachable Concurrency section is additive, not a replacement, for codebases that keep
+explicit per-type isolation.
 
 ## Core Concepts
 
@@ -58,6 +63,24 @@ compiler — not `DispatchQueue.main.async` sprinkled defensively — guarantees
 access. Annotate whole ObservableObject/`@Observable` view models `@MainActor` rather than
 individual methods; partial annotation creates hop churn and confusing isolation mismatches.
 
+### Swift 6.2: Approachable Concurrency flips the annotation direction
+
+`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` (SE-0466) makes an entire module default to
+`@MainActor` unless a type or function opts out — Xcode 26 sets this for new projects
+automatically. Paired with Approachable Concurrency's `nonisolated(nonsending)` default (SE-0461),
+a `nonisolated` async function now runs on its *caller's* actor instead of forcing a hop, which
+removes most of the Sendable-crossing-boundary errors that used to appear on ordinary UI-adjacent
+async calls. The practical effect: stop annotating every view, model, and view model
+`@MainActor` — under this setting they already are. The escape hatch is `@concurrent`: mark a
+function `@concurrent` to deliberately push CPU-bound work (decoding, image processing, search)
+onto a background thread. This is additive to, not a replacement for, the explicit-annotation
+model described elsewhere in this file — a codebase that hasn't enabled the setting (most
+existing codebases, as of this writing) still needs `@MainActor` written out, and everything
+above about actors, `Sendable`, and re-entrancy applies identically either way. Detect which
+model a project uses before annotating: check the target's build settings / `Package.swift`
+`swiftSettings` for `SWIFT_DEFAULT_ACTOR_ISOLATION` and `SWIFT_APPROACHABLE_CONCURRENCY` rather
+than assuming.
+
 ### Cancellation is cooperative
 
 Cancelling a task sets a flag; nothing stops unless the code checks. Built-in awaits
@@ -78,6 +101,8 @@ holds resources, burns battery, and delays UI teardown.
 | Work must outlive view/object, independent priority | `Task.detached` — rare | Loses actor context and priority inheritance; justify in a comment |
 | Stream of values over time (events, sockets) | `AsyncStream`/`AsyncSequence` | Native backpressure via pull; prefer over Combine for new code |
 | Existing Combine pipelines, UIKit bindings | Keep Combine, bridge with `.values` | Rewriting working pipelines is churn, not progress |
+| Module already has `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` set | Stop adding explicit `@MainActor` — it's redundant; mark background work `@concurrent` instead | Matches the project's chosen model; redundant annotations are noise reviewers learn to ignore |
+| CPU-bound work (decode, image processing, search) in a default-`MainActor`-isolated module | `@concurrent` on that function | The explicit escape hatch — without it, "async" work still runs on main under this setting |
 
 Rule of thumb for actors vs locks: if the critical section contains an `await` or callers are
 async, actor. If it's a few nanoseconds of synchronous mutation called from sync code, lock.
@@ -86,8 +111,9 @@ Never hold a lock across an `await` — that is the worst of both worlds and can
 ## Workflow
 
 1. **Read the existing code.** Identify current isolation: GCD queues, locks, `@MainActor`
-   annotations, Combine pipelines, and the project's `SWIFT_STRICT_CONCURRENCY` level. Map
-   which state is shared and who mutates it.
+   annotations, Combine pipelines, and the project's `SWIFT_STRICT_CONCURRENCY` level — and
+   whether `SWIFT_DEFAULT_ACTOR_ISOLATION`/Approachable Concurrency is enabled, which changes
+   whether `@MainActor` needs writing out at all. Map which state is shared and who mutates it.
 2. **Classify each piece of shared state**: UI-driving → `@MainActor`; shared model/cache →
    actor; immutable → `let` + `Sendable`; sync hot path → lock.
 3. **Design the task topology** before writing code: what is structured (`async let`, group)
@@ -224,6 +250,33 @@ final class Counter: @unchecked Sendable { // promise kept by an internal lock
 }
 ```
 
+### Approachable Concurrency: default-isolated module, escape with `@concurrent`
+
+With `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` set, the view model below needs no `@MainActor`
+— the module default already gives it that isolation. The search function is CPU-bound, so it
+opts *out* explicitly instead:
+
+```swift
+// No @MainActor here — the target's default isolation already applies.
+@Observable
+final class SearchViewModel {
+    private(set) var results: [Post] = []
+
+    func search(_ query: String, in posts: [Post]) async {
+        results = await filter(posts, matching: query)   // hops off, then back, deliberately
+    }
+
+    @concurrent
+    private func filter(_ posts: [Post], matching query: String) async -> [Post] {
+        posts.filter { $0.matches(query) }                // CPU-bound; explicitly not on main
+    }
+}
+```
+
+Compare to the explicit-annotation style in the pattern above (`ProfileViewModel`): same
+guarantee, opposite default — one writes `@MainActor` to get main-thread safety, the other writes
+`@concurrent` to get off of it.
+
 ## Pitfalls / Anti-Patterns
 
 | Symptom | Cause | Fix |
@@ -237,6 +290,8 @@ final class Counter: @unchecked Sendable { // promise kept by an internal lock
 | Hundreds of Sendable warnings on enabling strict mode | Non-Sendable classes captured across boundaries | Fix the types (structs, immutable finals, actors) — don't blanket `@unchecked Sendable` |
 | Sluggish app, main thread busy | Heavy synchronous work in a `@MainActor` context — `async` does not mean "off main" | Move computation into a nonisolated/detached function or an actor; await its result on main |
 | Stale result overwrites fresh one | Two loads race; the slower finishes last | Cancel the previous task before starting a new one (see view model pattern) and ignore `CancellationError` |
+| CPU-bound work jams the UI in a new Xcode 26 project despite being `async` | Default `MainActor` isolation means unmarked "async" work still runs on main; `@concurrent` was never applied | Mark decode/image/search-style CPU-bound functions `@concurrent` explicitly — the setting doesn't move heavy work off main by itself |
+| Reviewers flag "redundant" `@MainActor` annotations everywhere | Explicit annotations added out of habit in a module that already has `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` set | Check the target's default-isolation setting before annotating; stop adding what the module default already provides |
 
 ## Quality Checklist
 
@@ -252,3 +307,7 @@ final class Counter: @unchecked Sendable { // promise kept by an internal lock
 - [ ] `Task.detached` usages are justified in a comment (escaping actor context on purpose)
 - [ ] AsyncStream buffering policy chosen deliberately (newest-N for state, unbounded only for must-not-drop events)
 - [ ] Thread Sanitizer run on the touched paths with no findings
+- [ ] The project's actor-isolation model is identified explicitly (default `MainActor` isolation
+      + Approachable Concurrency, or fully explicit per-type annotation) before annotating new code
+- [ ] In a default-`MainActor`-isolated module, CPU-bound work is marked `@concurrent`
+      deliberately — "it's `async`" alone doesn't move it off main
