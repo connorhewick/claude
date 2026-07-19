@@ -65,6 +65,16 @@ direct replacement for `XCTestExpectation`, including the inverted case (`expect
 timeout is a *failure deadline*, not a synchronization mechanism — `sleep`-then-assert is how
 flaky suites are born, in either framework.
 
+### Exit tests and attachments close two former gaps
+
+Code that's *supposed* to terminate the process — a `fatalError`, a `precondition` failure, a
+CLI's exit code — used to be untestable without taking the whole test run down with it.
+`#expect(processExitsWith: .failure) { ... }` runs the closure in a child process and asserts on
+how it exited, so the crash is contained and reported as one clean failure instead of killing the
+suite. Separately, `Attachment.record(value, named:)` attaches arbitrary `Attachable` data (raw
+bytes, a decoded response, a `UIImage`) to a test's result — visible in Xcode's report and written
+to disk for CI — for triaging *why* a failure happened without reproducing it locally first.
+
 ### Traits and parameterization are native, not bolted on
 
 `@Test(arguments:)` replaces the manual "array of cases + a loop + `XCTContext.runActivity`"
@@ -113,6 +123,8 @@ only what matters (`Order.fixture(status: .expired)` — the noise stays in the 
 | Same logic, many input/output cases? | `@Test(arguments:)` with an array of cases — no manual loop, no `XCTContext.runActivity` |
 | Persistence in tests? | In-memory store built per-test, torn down after — construct fresh per `@Test`, not shared via a suite-level `let` |
 | Measuring speed/memory? | XCTest `measure(metrics:)` with a recorded baseline — no Swift Testing equivalent yet; keep this one test in an `XCTestCase` |
+| Code expected to crash (`fatalError`/`precondition`)? | `#expect(processExitsWith: .failure) { ... }` — runs in a child process, isolates the crash to one clean failure |
+| Failure needs debug data attached (response body, screenshot)? | `Attachment.record(value, named:)` — surfaces in Xcode's report and CI artifacts |
 | Singleton in the way? | Wrap it in a protocol, inject; don't mutate the singleton in tests |
 | Tests need to run one-at-a-time (shared external resource)? | `.serialized` trait on the `@Suite` — sparingly, as an exception, not a default |
 | Existing suite is XCTestCase-based? | Leave it; write new tests in Swift Testing in the same target rather than migrating wholesale |
@@ -313,6 +325,7 @@ final class FeedDiffPerformanceTests: XCTestCase {
 | Mock setup is 40 lines per test | Over-mocking: every collaborator, every call stubbed | Mock only architectural boundaries; use fixture builders with defaults; consider a real (in-memory) implementation |
 | Inverted `confirmation(expectedCount: 0)` always passes | Window too short for the forbidden event to occur at all | Pair with a positive-control test proving the event *does* fire in the non-cached path |
 | Persistence tests slow and cross-contaminated | Shared on-disk store (Core Data or SwiftData) across tests | Fresh in-memory `ModelContainer`/`NSPersistentContainer` per test; never share one across tests |
+| Test crashes and kills the whole run instead of failing cleanly | Precondition/`fatalError` code tested inline instead of via an exit test | `#expect(processExitsWith: .failure) { ... }` — the crash happens in a disposable child process |
 | Migrating every existing `XCTestCase` to Swift Testing before writing new tests | Treating the migration as a prerequisite instead of incidental | Write new tests in Swift Testing now; migrate old suites opportunistically, if at all — both frameworks coexist indefinitely |
 
 ## Quality Checklist
@@ -332,6 +345,8 @@ final class FeedDiffPerformanceTests: XCTestCase {
       protocols and doubled in tests
 - [ ] Same-shape cases use `@Test(arguments:)` instead of a manual loop
 - [ ] No force unwraps in tests — `#require`/`XCTUnwrap` used instead
+- [ ] Code expected to crash (precondition/`fatalError`) is verified via an exit test, not left
+      untested or allowed to take down the run
 - [ ] Test names/parameters state the scenario and expected outcome
 - [ ] Logic lives in unit tests; XCUITest covers only critical journeys via accessibility
       identifiers with launch-argument stubbing
