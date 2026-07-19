@@ -77,7 +77,7 @@ The rest of this file assumes MVVM was the right call per the section above.
 
 **Mocks are hand-written and dumb — unless the codebase already generates them.** A mock conforms to the protocol, records the call, and returns a stubbed value. Hand-written mocks (one per protocol, ~10 lines) beat frameworks here by default: Swift's type system makes them trivial, they compile-break loudly when the protocol changes, and there's no reflection magic to debug. But check first — a codebase with Mockolo/Sourcery/SwiftyMocky already wired in (config file, a generator target, a mocking dependency in `Package.swift`/Podfile) has already made this call; extend that convention instead of introducing a second mocking style. Whichever approach applies, generate the mock at the same moment you generate the protocol — a protocol without its mock is half-delivered.
 
-**`@MainActor` on ViewModels, nowhere below.** UI state mutation must be main-thread; annotating the ViewModel class makes that structural. Services and clients stay actor-agnostic (`Sendable`), so work runs off-main and only the published state hops back.
+**`@MainActor` on ViewModels, nowhere below.** UI state mutation must be main-thread; annotating the ViewModel class makes that structural — write it explicitly even on a target with Swift 6.2's default `MainActor` isolation enabled, where it's redundant but never wrong. Services and clients stay actor-agnostic (`Sendable`), so work runs off-main and only the published state hops back — under default isolation that means marking them (or their methods) `nonisolated`/`@concurrent` explicitly, since the module default would otherwise pull them onto MainActor too; see `swift-concurrency.md` for detecting which model a target uses.
 
 ## Decision Framework
 
@@ -94,7 +94,7 @@ The rest of this file assumes MVVM was the right call per the section above.
 
 ## Workflow
 
-1. **Read the existing code, and decide the architecture if none is established.** Identify the app's current pattern (MVVM? MV? TCA? VIPER? MVC?) using the Architecture Choice section above — extend what's there rather than picking fresh if a pattern already exists. Also note DI approach, networking layer, minimum iOS version (`@Observable` needs 17; below that use `ObservableObject`), naming conventions, and any existing mock-generation tooling (Mockolo config, Sourcery templates, a mocking package in `Package.swift`/Podfile). Never introduce a second architecture style — or a second mocking approach — for one feature.
+1. **Read the existing code, and decide the architecture if none is established.** Identify the app's current pattern (MVVM? MV? TCA? VIPER? MVC?) using the Architecture Choice section above — extend what's there rather than picking fresh if a pattern already exists. Also note DI approach, networking layer, minimum iOS version (`@Observable` needs 17; below that use `ObservableObject`), whether the target defaults to `MainActor` isolation (Swift 6.2's `SWIFT_DEFAULT_ACTOR_ISOLATION`, per `swift-concurrency.md`), naming conventions, and any existing mock-generation tooling (Mockolo config, Sourcery templates, a mocking package in `Package.swift`/Podfile). Never introduce a second architecture style — or a second mocking approach — for one feature.
 2. **Name the domain and its operations.** Agree the service protocol surface first (e.g., `UserServicing: fetchUser, updateProfile`) — it is the contract everything else satisfies.
 3. **Generate the domain model** (plain struct) and, in the client layer, the Codable DTO + mapping if the wire format differs (see `swift-codable-designer.md`).
 4. **Generate the client/store protocol and concrete** (delegating HTTP details to `ios-networking.md`, or persistence to `swiftdata-schema-designer.md`).
@@ -102,7 +102,7 @@ The rest of this file assumes MVVM was the right call per the section above.
 6. **Generate the ViewModel**: `@MainActor @Observable`, initializer-injected service protocol, explicit `ViewState`.
 7. **Generate the View** (SwiftUI by default; UIKit ViewController if the codebase demands) rendering the `ViewState` exhaustively — see `swiftui-patterns.md`.
 8. **Wire the composition root**: add the new concretes to `AppDependencies`, thread them to the view's construction site.
-9. **Generate mocks + one ViewModel test** proving the loading/success/failure transitions — see `xctest-patterns.md`.
+9. **Generate mocks + one ViewModel test** proving the loading/success/failure transitions — see `swift-testing-patterns.md`.
 10. **Verify against the Quality Checklist** below; build and run the tests.
 
 ## Patterns
@@ -256,7 +256,7 @@ func testLoadSuccessTransitionsToLoaded() async {
 - [ ] No layer skipped: Views never import the client/store layer; ViewModels never touch URLSession/Core Data types
 - [ ] Every ViewModel dependency is a protocol received via `init` — zero `.shared` reads in business code
 - [ ] Concrete types constructed in exactly one composition root file
-- [ ] ViewModels are `@MainActor @Observable` (or `ObservableObject` pre-iOS 17, matching the codebase); services/clients are `Sendable`
+- [ ] ViewModels are `@MainActor @Observable` (or `ObservableObject` pre-iOS 17, matching the codebase); services/clients are `Sendable` and, on a default-`MainActor`-isolated target, explicitly `nonisolated` where they must run off main
 - [ ] Domain rules live in services — ViewModels contain only state translation
 - [ ] DTOs (Codable wire types) are confined to the client layer with explicit domain mapping
 - [ ] Every protocol ships with a mock that records calls and stubs results (hand-written by default, or via the codebase's existing generator)
