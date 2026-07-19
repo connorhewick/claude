@@ -26,11 +26,13 @@ debugging session for information the test should have given away free.
 
 Anything nondeterministic or external — network, clock, persistence, randomness, analytics —
 hides behind a protocol the production type receives in its initializer (see
-`ios-service-generator.md`). The test passes a hand-rolled mock. This is *why* protocol-oriented
-design pays for itself: there's no mocking framework in mainline Swift, and hand-rolled mocks
-(10 lines each) are clearer than any framework anyway. Mock only what you own and only at
-architectural boundaries: when a test mocks five collaborators to assert call order, it's
-testing wiring, not behavior, and will break on every refactor.
+`ios-service-generator.md`). The test passes a mock. By default that mock is hand-rolled: there's
+no mocking framework in mainline Swift, and hand-rolled mocks (10 lines each) are clearer than
+any framework anyway — but check for an existing generator first (Mockolo/Sourcery config, a
+mocking package already in the project) and follow it if one's there rather than introducing a
+second mocking style. Mock only what you own and only at architectural boundaries: when a test
+mocks five collaborators to assert call order, it's testing wiring, not behavior, and will break
+on every refactor.
 
 ### Stub vs. spy vs. mock — know which you're writing
 
@@ -84,8 +86,9 @@ the noise stays in the builder).
 ## Workflow
 
 1. **Read the existing code and test targets.** Note the DI style (initializer injection?
-   environment? singletons), existing mocks/fixtures to reuse, `@testable import` targets, and
-   how CI runs tests. Match the house style before adding a new one.
+   environment? singletons), existing mocks/fixtures to reuse and how they're produced
+   (hand-written, or generated — grep for Mockolo/Sourcery config), `@testable import` targets,
+   and how CI runs tests. Match the house style before adding a new one.
 2. **Identify the behaviors to test** — from the bug report, acceptance criteria, or the public
    API of the type. List them as future test names first; untestable names reveal design
    problems early.

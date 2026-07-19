@@ -123,6 +123,11 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
   consistency within a codebase beats theoretical purity.
 - **Respect security boundaries.** Never store credentials in `UserDefaults`, log sensitive
   data, or bypass authentication; see `references/ios-security.md`.
+- **iOS 17 is the floor, not a ceiling to justify.** Default to iOS 17+ APIs (`@Observable`,
+  `NavigationStack`, structured concurrency). If a task needs or would meaningfully benefit from
+  something newer than 17 — raising the effective minimum deployment target further — that's a
+  deployment-target decision, not an implementation detail: flag it and record it with
+  `write-adr` before adopting the newer API, rather than quietly raising the floor.
 - **Record the resulting decision.** If a scaffolding/architecture choice is significant or
   hard to reverse, use this repo's `write-adr` skill to record it — this skill doesn't do
   trade-off analysis or ADR-writing itself.

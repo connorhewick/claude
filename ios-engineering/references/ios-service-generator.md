@@ -20,7 +20,7 @@ This skill scaffolds the layer most iOS codebases get wrong: the seam between UI
 
 **ViewModels own state and translation; services own domain logic.** A ViewModel converts user intent into service calls and service results into display state (`@Observable` properties, a `ViewState` enum). It contains *no* business rules — those live in services so they're shared across screens and tested without UI. Symmetrically, services return domain models, never view state; the day a service knows about "loading spinners" the layering has inverted.
 
-**Mocks are hand-written and dumb.** A mock conforms to the protocol, records the call, and returns a stubbed value. Hand-written mocks (one per protocol, ~10 lines) beat frameworks here: Swift's type system makes them trivial, they compile-break loudly when the protocol changes, and there's no reflection magic to debug. Generate the mock at the same moment you generate the protocol — a protocol without its mock is half-delivered.
+**Mocks are hand-written and dumb — unless the codebase already generates them.** A mock conforms to the protocol, records the call, and returns a stubbed value. Hand-written mocks (one per protocol, ~10 lines) beat frameworks here by default: Swift's type system makes them trivial, they compile-break loudly when the protocol changes, and there's no reflection magic to debug. But check first — a codebase with Mockolo/Sourcery/SwiftyMocky already wired in (config file, a generator target, a mocking dependency in `Package.swift`/Podfile) has already made this call; extend that convention instead of introducing a second mocking style. Whichever approach applies, generate the mock at the same moment you generate the protocol — a protocol without its mock is half-delivered.
 
 **`@MainActor` on ViewModels, nowhere below.** UI state mutation must be main-thread; annotating the ViewModel class makes that structural. Services and clients stay actor-agnostic (`Sendable`), so work runs off-main and only the published state hops back.
 
@@ -34,12 +34,12 @@ This skill scaffolds the layer most iOS codebases get wrong: the seam between UI
 | ViewModel per screen or shared? | Per screen, composing shared services | Shared ViewModels accrete unrelated state and become god objects |
 | Where do Codable DTOs live? | Client layer, mapped to domain models before crossing into services | Backend field renames shouldn't ripple into ViewModels |
 | Class or struct ViewModel? | `@Observable final class`, `@MainActor` | Identity + observation; structs can't hold mutable observed state across async work |
-| Mock framework or hand-written? | Hand-written | Compile-time safety, zero dependencies, protocol drift breaks the build not the test run |
+| Mock framework or hand-written? | Hand-written, unless a generator (Mockolo/Sourcery) is already wired in | Compile-time safety, zero dependencies, protocol drift breaks the build not the test run — but matching an existing convention beats a second mocking style |
 | Singleton ever? | Only inside the composition root as a held instance — never reached via `.shared` from business code | Lifetime control without hidden coupling |
 
 ## Workflow
 
-1. **Read the existing code.** Identify the app's current pattern (MVVM? MVC? TCA?), DI approach, networking layer, minimum iOS version (`@Observable` needs 17; below that use `ObservableObject`), and naming conventions. Extend what exists; never introduce a second architecture style for one feature.
+1. **Read the existing code.** Identify the app's current pattern (MVVM? MVC? TCA?), DI approach, networking layer, minimum iOS version (`@Observable` needs 17; below that use `ObservableObject`), naming conventions, and any existing mock-generation tooling (Mockolo config, Sourcery templates, a mocking package in `Package.swift`/Podfile). Extend what exists; never introduce a second architecture style — or a second mocking approach — for one feature.
 2. **Name the domain and its operations.** Agree the service protocol surface first (e.g., `UserServicing: fetchUser, updateProfile`) — it is the contract everything else satisfies.
 3. **Generate the domain model** (plain struct) and, in the client layer, the Codable DTO + mapping if the wire format differs (see `swift-codable-designer.md`).
 4. **Generate the client/store protocol and concrete** (delegating HTTP details to `ios-networking.md`, or persistence to `coredata-schema-designer.md`).
@@ -204,7 +204,7 @@ func testLoadSuccessTransitionsToLoaded() async {
 - [ ] ViewModels are `@MainActor @Observable` (or `ObservableObject` pre-iOS 17, matching the codebase); services/clients are `Sendable`
 - [ ] Domain rules live in services — ViewModels contain only state translation
 - [ ] DTOs (Codable wire types) are confined to the client layer with explicit domain mapping
-- [ ] Every protocol ships with a hand-written mock that records calls and stubs results
+- [ ] Every protocol ships with a mock that records calls and stubs results (hand-written by default, or via the codebase's existing generator)
 - [ ] At least one ViewModel test covers loading → loaded and loading → failed transitions
 - [ ] View state is an enum rendered with an exhaustive switch (no `default:`)
 - [ ] Async work is tied to view lifetime (`.task`) or explicitly cancelled
