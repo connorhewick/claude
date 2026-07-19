@@ -34,12 +34,20 @@ declare its rule deliberately — SwiftData infers an inverse automatically from
 pair, but the delete rule is never inferred correctly enough to leave at the default for anything
 but the most obviously-owned child.
 
-**Fetching: `@Query` in SwiftUI, `ResultsObserver` everywhere else.** `@Query` stays the default
-for SwiftUI lists — predicate + sort, live-updating, no notification plumbing. As of 2026,
-`sectionBy:` moves grouping into the query itself instead of a manual `Dictionary(grouping:)` pass
-after the fetch. Outside SwiftUI (a view model, a background pipeline), `ResultsObserver` gives
-`@Query`-equivalent fetching and observation without a View in the call stack — reach for it
-instead of hand-rolling `NotificationCenter` observation of context saves.
+**Fetching: `@Query` in SwiftUI, `ResultsObserver`/`HistoryObserver` everywhere else.** `@Query`
+stays the default for SwiftUI lists — predicate + sort, live-updating, no notification plumbing,
+and as of 2026 `#Predicate` compares enum values directly and composes via `Predicate(all:)`/
+`Predicate(any:)` instead of hand-rolled boolean chains. `sectionBy:` moves grouping into the
+query itself instead of a manual `Dictionary(grouping:)` pass after the fetch — the wrapped value
+stays a plain array for source compatibility, so iterate the projected value's `.sections` (e.g.
+`_orders.sections`) to get grouped `Section`s, and only a stored (not computed) property can be a
+grouping key. Outside SwiftUI (a view model, a background pipeline), `ResultsObserver` gives
+`@Query`-equivalent fetching and observation without a View in the call stack — it's `Observable`,
+not callback-based, so read its `results` property instead of hand-rolling `NotificationCenter`
+observation of context saves. For the different job of reacting to the raw stream of persisted
+changes (a sync engine watching for new writes), reach for `HistoryObserver` instead — it exposes
+an observable `eventCounter` you pair with `ModelContext.fetchHistory`, filterable by model type
+and transaction author so you don't re-process your own writes.
 
 **`ModelContext` is not `Sendable` — the concurrency rule is the same shape as Core Data's, just
 lighter syntax.** A `ModelContext` (and the models it produced) belongs to one isolation domain.
@@ -63,20 +71,22 @@ shipped schema version, and test migration from every version you've actually sh
 on the resulting data — not just that the migration didn't throw.
 
 **Know when to reach for Core Data instead.** SwiftData covers the large majority of new schema
-work, but three things still push toward Core Data: a **very large or deeply nested object graph**
+work, but four things still push toward Core Data: a **very large or deeply nested object graph**
 (SwiftData's model loading is less fine-grained about faulting than Core Data's, and large graphs
 can load more eagerly than you want); a **heavyweight/mapping-model migration** (SwiftData's
 migration story is lightweight-first; complex multi-entity transformations are still more
-explicit and better-tooled in Core Data); or an **existing Core Data store** with real production
-data and a working migration history — don't rewrite a stable store to chase a newer framework
-without a concrete reason tied to a feature you actually need.
+explicit and better-tooled in Core Data); a need for **CloudKit shared or public database sync**
+(SwiftData's CloudKit integration remains private-database-only as of mid-2026; multi-user shared
+records still require `NSPersistentCloudKitContainer`); or an **existing Core Data store** with
+real production data and a working migration history — don't rewrite a stable store to chase a
+newer framework without a concrete reason tied to a feature you actually need.
 
 ## Decision Framework
 
 | Decision | Choose | When |
 |---|---|---|
 | SwiftData vs Core Data | **SwiftData** | Default for new schema work — greenfield or a well-isolated new feature area, targeting the platform's SwiftData floor |
-| | **Core Data** | Very large/deeply nested object graphs, heavyweight data-transforming migrations, or an existing store already on it with no concrete reason to migrate |
+| | **Core Data** | Very large/deeply nested object graphs, heavyweight data-transforming migrations, CloudKit shared/public database sync, or an existing store already on it with no concrete reason to migrate |
 | Delete rule | `.cascade` | Parent exclusively owns children (Order→Items) |
 | | `.nullify` | Reference to a shared/independent entity (Item→Product) |
 | | `.deny` | Deletion must be blocked while dependents exist (audit invariant) |
@@ -181,11 +191,11 @@ struct OpenOrdersView: View {
            sort: \.createdAt,
            order: .reverse,
            sectionBy: \.status)                 // grouping moves into the query itself
-    private var orders: SectionedResults<OrderStatus, Order>
+    private var orders: [Order]                 // wrapped value stays a plain, flat array
 
     var body: some View {
         List {
-            ForEach(orders) { section in
+            ForEach(_orders.sections) { section in     // projected value exposes the grouping
                 Section(section.id.rawValue) {
                     ForEach(section) { order in OrderRow(order: order) }
                 }
@@ -195,21 +205,31 @@ struct OpenOrdersView: View {
 }
 ```
 
-### `ResultsObserver` for non-SwiftUI observation
+### `ResultsObserver`-style observation for non-SwiftUI code
+
+SwiftData's WWDC-2026 non-SwiftUI observer type gives `@Query`-equivalent fetching and
+observation without a View in the call stack — it's `Observable`, not callback-based, so you read
+its results property instead of hand-rolling `NotificationCenter` observation of context saves.
+**Its exact type name and initializer signature are still unsettled across current sources as of
+this writing** (early docs and WWDC session material disagree between `ResultsObserver`,
+`ModelResultsObserver`, and `ResultObserver`) — confirm the precise symbol against your SDK's
+current SwiftData headers before writing this code, rather than trusting any specific signature
+here.
 
 ```swift
+@Observable
 final class OrderBadgeCounter {
-    private let observer: ResultsObserver<Order>
+    // Exact type/initializer: verify against your SDK — see note above.
+    private let observer: /* SwiftData's Observable results-observer type */
 
-    init(container: ModelContainer) {
-        observer = ResultsObserver(
-            container: container,
-            descriptor: FetchDescriptor<Order>(predicate: #Predicate { $0.status == .open })
-        )
-        observer.onChange = { [weak self] results in self?.count = results.count }
+    init(modelContext: ModelContext) throws {
+        observer = try /* ...Observer */(modelContext: modelContext, /* fetch config */: .init(
+            predicate: #Predicate<Order> { $0.status == .open }
+        ))
     }
 
-    private(set) var count = 0     // stays current without a View or NotificationCenter plumbing
+    // Observable — stays current with no callback or NotificationCenter plumbing to write
+    var count: Int { observer.results.count }
 }
 ```
 
@@ -257,14 +277,14 @@ func testMigration(fromSeededV1Store url: URL) throws {
 }
 ```
 
-### Falling back to Core Data (large graphs, heavyweight migration, existing store)
+### Falling back to Core Data (large graphs, heavyweight migration, CloudKit sharing, existing store)
 
 The concurrency and delete-rule rules are identical in spirit — only the API surface differs:
 every `NSManagedObject` access happens inside its context's `perform`/`await context.perform {}`;
 writes go through `container.newBackgroundContext()`, never `viewContext`; `objectID`s cross
 threads, never objects; every relationship gets an explicit delete rule and an inverse; migrations
 are tested from every shipped model version with a seeded real store, using a mapping model for
-anything beyond additive/renaming changes. Reach for this path only when one of the three
+anything beyond additive/renaming changes. Reach for this path only when one of the four
 Decision Framework triggers above actually applies — not as a default.
 
 ## Pitfalls / Anti-Patterns
@@ -275,6 +295,8 @@ Decision Framework triggers above actually applies — not as a default.
 | Bidirectional relationship shows stale/inconsistent state after init | Both sides of a relationship set independently instead of through the inverse | Set one side and let SwiftData maintain the inverse; verify with a round-trip fetch in a test |
 | Memory balloons / UI stalls on a big list | Large or deeply nested object graph loaded eagerly | Narrow the `FetchDescriptor` (predicate, `fetchLimit`), or move this entity to Core Data if the graph is fundamentally large |
 | Migration works for the schema I just wrote, fails for users three versions back | Only tested migration from the immediately prior version | Seed a real store per shipped `VersionedSchema` and test migration from each one, asserting data |
+| Sectioned `@Query` doesn't compile, or grouped list never updates | Declared the property as a `SectionedResults` type instead of a plain array, or grouped on a computed/transient property | Keep the wrapped value `[Model]`; read the projected value's `.sections`; group only on a stored property |
+| Multi-user shared records silently only sync to the owner's private database | Assumed SwiftData's CloudKit integration covers shared/public databases | Use `NSPersistentCloudKitContainer` (Core Data) for CloudKit-shared records; SwiftData is private-database-only |
 | `@Attribute(.codable)` field can't be filtered or sorted, feature silently degrades | Reaching for `.codable` as a shortcut instead of decomposing the type | Model real attributes; reserve `.codable` for types that genuinely resist decomposition |
 | Random crashes touching a fetched model from a background queue | `ModelContext`/its models used outside their owning isolation domain | Own writes with a `ModelActor`; pass `PersistentIdentifier`, never the model instance, across the boundary |
 | Rebuilding the whole persistence layer for a feature that needed one Core Data capability | Migrating a stable, working Core Data store to SwiftData without a concrete blocking need | Keep the existing store; add the new feature's schema in whichever engine already owns that data |
@@ -283,7 +305,7 @@ Decision Framework triggers above actually applies — not as a default.
 ## Quality Checklist
 
 - [ ] SwiftData is the default; Core Data is used only where a large/nested graph, a heavyweight
-      transforming migration, or an existing store justifies it
+      transforming migration, CloudKit shared/public sync, or an existing store justifies it
 - [ ] Every relationship has an explicit, justified delete rule (`.cascade` = ownership,
       `.nullify` = reference, `.deny` sparingly)
 - [ ] Writes that matter for responsiveness go through a `ModelActor`; `PersistentIdentifier`s —
