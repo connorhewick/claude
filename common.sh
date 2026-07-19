@@ -11,11 +11,18 @@ SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 
 # Back up a file/dir before it's overwritten or removed, if it pre-exists and
-# isn't already what we'd install (idempotent no-op when unchanged).
+# isn't already what we'd install (idempotent no-op when unchanged). Backs up
+# to a `.bak.<timestamp>` sibling of $target by default; pass $2 to redirect
+# the backup elsewhere instead. Directory-based components must pass $2 to
+# somewhere outside the directory the harness scans for that component
+# type — a sibling backup directory (e.g. skills/foo.bak.<timestamp>/) is
+# itself a valid component directory and would be discovered as a second,
+# live copy, not inert the way a mismatched-extension file backup is.
 backup_if_exists() {
   local target="$1"
   [[ -e "$target" ]] || return 0
-  local backup="$target.bak.$(date +%Y%m%d%H%M%S)"
+  local backup="${2:-$target.bak.$(date +%Y%m%d%H%M%S)}"
+  mkdir -p "$(dirname "$backup")"
   cp -r "$target" "$backup"
   echo "  backed up existing $target -> $backup"
 }
@@ -35,7 +42,9 @@ install_skill() {
   fi
 
   mkdir -p "$CLAUDE_DIR/skills"
-  backup_if_exists "$dest"
+  # Backup goes outside skills/ — see backup_if_exists's comment on why a
+  # same-directory sibling would get discovered as a second live skill.
+  backup_if_exists "$dest" "$CLAUDE_DIR/.component-backups/skills/$name.bak.$(date +%Y%m%d%H%M%S)"
   rm -rf "$dest"
   mv "$staging" "$dest"
   echo "installed skill: $name -> $dest"

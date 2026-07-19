@@ -20,7 +20,9 @@ installs globally, across every project on your machine.
 ```
 
 Re-running `install.sh` is safe — anything it would overwrite gets backed up first
-(`<path>.bak.<timestamp>`), never silently clobbered.
+(`<path>.bak.<timestamp>`, or `~/.claude/.component-backups/` for directory-based components
+like skills, so the backup itself is never mistaken for a live component), never silently
+clobbered.
 
 ## Components
 
