@@ -1,25 +1,27 @@
 ---
 name: ios-engineering
 description: >
-  Build and extend production iOS apps end-to-end: layered MVVM scaffolding (Model → ViewModel →
-  Service → Client/Store), SwiftUI views, Core Data schemas, Codable/API types, URLSession
-  networking, Swift concurrency, Keychain/biometric security, performance profiling, and XCTest
-  infrastructure. Triggers for: "scaffold a feature/service", "add a domain", "design a Core Data
-  schema", "handle this API response", "add networking", "make this thread-safe", "add
-  authentication/security", "optimize performance", "write tests" for iOS/Swift work, or any
-  MVVM/SwiftUI/Swift-concurrency architecture question. Do NOT trigger for non-iOS platforms, for
-  narrow #Preview formatting (that's this repo's `swiftui-rules` path-scoped rule, which applies
-  automatically), or for porting an existing web/iOS app to the other platform (that's
-  `port-web-to-ios`/`port-ios-to-web`).
+  Build and extend production iOS apps end-to-end: architecture selection (MVVM default, or
+  MV/TCA/VIPER/MVC when appropriate), SwiftData/Core Data schemas, Codable/API types, URLSession
+  networking, Swift concurrency (including Swift 6.2 approachable concurrency), Keychain/biometric
+  security, performance profiling, and Swift Testing/XCTest infrastructure. Triggers for: "scaffold
+  a feature/service", "add a domain", "design a data schema", "handle this API response", "add
+  networking", "make this thread-safe", "add authentication/security", "optimize performance",
+  "write tests" for iOS/Swift work, or any architecture/SwiftUI/Swift-concurrency question. Do NOT
+  trigger for non-iOS platforms, for narrow #Preview formatting (that's this repo's
+  `swiftui-rules` path-scoped rule, which applies automatically), or for porting an existing
+  web/iOS app to the other platform (that's `port-web-to-ios`/`port-ios-to-web`).
 ---
 
-Senior iOS engineer covering layered MVVM architecture with SwiftUI, Swift Concurrency,
-protocol-based dependency injection, and structured logging. Build, extend, test, and optimize
-production iOS apps end-to-end — from model design through networking to observability. Follow
-enterprise conventions: protocol-based interfaces, dependency injection, structured logging,
-strict separation between API models, domain entities, and Core Data models, and comprehensive
-test coverage. Lead with architecture before implementation details; read the existing codebase
-before writing code and follow its established patterns.
+Senior iOS engineer defaulting to layered MVVM architecture with SwiftUI, Swift Concurrency,
+protocol-based dependency injection, and structured logging — while knowing when a different
+architecture (MV, TCA, VIPER/Clean, legacy MVC) fits better; see `ios-service-generator.md`'s
+architecture-choice section before assuming MVVM. Build, extend, test, and optimize production
+iOS apps end-to-end — from model design through networking to observability. Follow enterprise
+conventions: protocol-based interfaces, dependency injection, structured logging, strict
+separation between API models, domain entities, and persisted models, and comprehensive test
+coverage (Swift Testing by default). Lead with architecture before implementation details; read
+the existing codebase before writing code and follow its established patterns.
 
 This skill bundles nine detailed reference files under `references/` — read only the ones
 relevant to the task at hand, not all nine every time.
@@ -27,25 +29,28 @@ relevant to the task at hand, not all nine every time.
 ## 1 — Project discovery (once per session)
 
 Before doing any work:
-- Detect the stack: `Package.swift`/`.xcodeproj`, deployment target, SwiftUI vs UIKit, Core Data
-  presence, networking library.
+- Detect the stack: `Package.swift`/`.xcodeproj`, deployment target, SwiftUI vs UIKit,
+  SwiftData/Core Data presence, networking library.
 - Detect the architecture: source layers (`Models/`, `ViewModels/`, `Views/`, `Services/`,
   `Networking/`), DI pattern, any `CLAUDE.md`/`ARCHITECTURE.md` (source of truth for
-  conventions), SwiftUI property-wrapper usage.
-- Detect test infrastructure: `Tests/` structure, existing mocks/fixtures, XCTest config.
-- Note deviations from expected MVVM before proceeding.
+  conventions), SwiftUI property-wrapper usage, and whether the codebase is already MVVM, MV,
+  TCA, VIPER/Clean, or legacy MVC — see `ios-service-generator.md`'s architecture-choice section
+  if it's ambiguous or this is a fresh module.
+- Detect test infrastructure: `Tests/` structure, existing mocks/fixtures, and whether the
+  project uses Swift Testing, XCTest, or both.
+- Note deviations from the detected architecture before proceeding.
 
 ## 2 — Route to the right reference
 
 | Topic | Read | When |
 |---|---|---|
-| Scaffolding a feature/domain end-to-end, layer boundaries, DI wiring | `references/ios-service-generator.md` | Any structural work — read this first |
+| Scaffolding a feature/domain end-to-end, choosing an architecture, layer boundaries, DI wiring | `references/ios-service-generator.md` | Any structural work — read this first |
 | Codable types, API response mapping, DTOs | `references/swift-codable-designer.md` | Model design is non-trivial |
-| Core Data entities, relationships, fetch requests, migrations | `references/coredata-schema-designer.md` | Persistent storage needed |
-| async/await, Actor isolation, Task safety, data races | `references/swift-concurrency.md` | Any threading/concurrency/async work |
+| SwiftData/Core Data entities, relationships, fetch requests, migrations | `references/swiftdata-schema-designer.md` | Persistent storage needed |
+| async/await, Actor isolation, approachable concurrency, Task safety, data races | `references/swift-concurrency.md` | Any threading/concurrency/async work |
 | URLSession, HTTP client design, retries, auth | `references/ios-networking.md` | Networking/API client work |
 | SwiftUI state management, view composition, navigation | `references/swiftui-patterns.md` | View/UI work |
-| XCTest infrastructure, mocking, fixtures | `references/xctest-patterns.md` | Any test-writing task |
+| Swift Testing/XCTest infrastructure, mocking, fixtures | `references/xctest-patterns.md` | Any test-writing task |
 | Instruments profiling, memory/CPU/battery | `references/swift-performance.md` | "slow", "optimize", "memory leak" |
 | Keychain, biometrics, ATS, secrets handling | `references/ios-security.md` | Auth/credential/token storage work |
 
@@ -66,11 +71,12 @@ binding").
 
 ## Workflows
 
-**Scaffold a new feature (end-to-end MVVM):** Project discovery → `ios-service-generator.md`
-for the scaffold pattern → Codable types (`swift-codable-designer.md`) → Core Data if needed
-(`coredata-schema-designer.md`) → repository/service layer → ViewModel (`@Observable`,
-async/await) → View (`swiftui-patterns.md`) → networking (`ios-networking.md`) → tests
-(`xctest-patterns.md`) → self-review against each reference's Quality Checklist.
+**Scaffold a new feature (end-to-end):** Project discovery → `ios-service-generator.md` for the
+architecture choice and scaffold pattern (MVVM by default) → Codable types
+(`swift-codable-designer.md`) → persistence if needed (`swiftdata-schema-designer.md`) →
+repository/service layer → ViewModel (`@Observable`, async/await) → View
+(`swiftui-patterns.md`) → networking (`ios-networking.md`) → tests (`xctest-patterns.md`,
+Swift Testing by default) → self-review against each reference's Quality Checklist.
 
 **Add/modify a view:** `swiftui-patterns.md` for state management and composition → build/modify
 the view → extend ViewModel/Repository as needed → tests for the view layer.
@@ -79,8 +85,9 @@ the view → extend ViewModel/Repository as needed → tests for the view layer.
 (`swift-codable-designer.md` if complex) → `swift-concurrency.md` for async error handling →
 tests with mocked `URLSession` → `ios-security.md` if auth/token storage is involved.
 
-**Write or fix tests:** `xctest-patterns.md` for fixture/mock strategy → identify the test
-boundary (unit vs integration vs UI) → Arrange/Act/Assert → run and fix failures.
+**Write or fix tests:** `xctest-patterns.md` for fixture/mock strategy (Swift Testing by default,
+XCTest for XCUITest/`measure(metrics:)`) → identify the test boundary (unit vs integration vs UI)
+→ Arrange/Act/Assert → run and fix failures.
 
 **Optimize performance:** `swift-performance.md` for the optimization hierarchy → profile with
 Instruments, establish a baseline → classify the bottleneck → apply the targeted fix →
@@ -100,8 +107,9 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
 | "security", "keychain", "tokens", "biometric" | `ios-security.md` |
 | "model", "Codable", "API response" | `swift-codable-designer.md` |
 | "HTTP", "networking", "API", "request" | `ios-networking.md` |
-| "Core Data", "database", "persistence" | `coredata-schema-designer.md` |
-| "async", "concurrency", "thread", "race condition" | `swift-concurrency.md` |
+| "SwiftData", "Core Data", "database", "persistence" | `swiftdata-schema-designer.md` |
+| "async", "concurrency", "thread", "race condition", "MainActor" | `swift-concurrency.md` |
+| "architecture", "MVVM", "TCA", "VIPER", "which pattern" | `ios-service-generator.md` |
 
 ## Guardrails
 
@@ -134,9 +142,11 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
 
 ## Error handling
 
-- **No recognizable MVVM structure found:** say so, ask the user to describe conventions, and
-  adapt — the references still apply even if the wiring differs.
-- **Missing test infrastructure:** suggest creating a `Tests/` target; see `xctest-patterns.md`.
+- **No recognizable architecture found:** say so, ask the user to describe conventions, and
+  adapt — the references still apply even if the wiring differs; see `ios-service-generator.md`'s
+  architecture-choice section if a fresh choice is needed.
+- **Missing test infrastructure:** suggest a Swift Testing target by default (an XCTest target
+  only for XCUITest or if the codebase is already XCTest-only); see `xctest-patterns.md`.
 - **Conflicting conventions:** follow the codebase's existing pattern for consistency, but note
   the deviation from a reference's recommendation in your response.
 - **Requirements change mid-workflow:** don't silently patch — acknowledge the change, identify
