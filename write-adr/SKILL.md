@@ -1,6 +1,6 @@
 ---
 name: write-adr
-description: Write an Architecture Decision Record for a significant or hard-to-reverse decision. Use when a new dependency, schema change, cross-cutting refactor, or a choice between competing architectural approaches has just been made.
+description: Write an Architecture Decision Record for a significant or hard-to-reverse decision. Use when a new dependency, schema change, cross-cutting refactor, or a choice between competing architectural approaches has just been made. Do NOT trigger for routine or easily-reversible choices, a decision already recorded elsewhere, or product/requirements scoping (that's write-prd).
 argument-hint: >
   [short-title]
 ---
@@ -33,7 +33,9 @@ Accepted
 
 Rules:
 - One ADR per decision. Don't retroactively edit a past ADR to reflect a later change — write
-  a new one and reference the superseded one in its Context.
+  a new one and reference the superseded one in its Context. The ADR set is an append-only
+  record of what was decided and why *at the time*; rewriting a past one erases the context a
+  later reader needs to understand how the current state came to be.
 - Keep it factual and dated; don't pad it to look thorough.
 - If a decision is already captured elsewhere (e.g. a `DECISIONS.md` log), an ADR is only
   warranted when the decision is significant/hard-to-reverse enough to need the fuller

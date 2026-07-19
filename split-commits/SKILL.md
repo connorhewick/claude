@@ -61,7 +61,7 @@ everything; the working tree is untouched). Then, for each group in order:
   hunk, so use `-U0` to separate them, and apply with `--unidiff-zero`:
 
   ```
-  git diff -U0 -- <file> > "$tmp"          # $tmp from mktemp — never write patches inside the repo
+  git diff -U0 -- <file> > "$tmp"          # $tmp from mktemp — a patch left in the tree can be swept into a later group's git add, or muddy the untracked-file survey
   # keep the file header + only the @@ blocks for this concern; drop the others
   git apply --cached --unidiff-zero --check "$edited"   # verify before applying
   git apply --cached --unidiff-zero "$edited"

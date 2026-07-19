@@ -10,9 +10,9 @@ is a deliberate action.
 
 1. Run `git status`, `git diff <base-branch>...HEAD`, and `git log <base-branch>..HEAD` to see
    the full set of changes and commits going into the PR (not just the latest commit).
-2. Check whether the change touches anything documented elsewhere in the repo (README, other
-   component READMEs) and flag if those now look stale — fix before drafting the body. An
-   accurate README is part of the change, not a follow-up.
+2. Check whether the change touches anything documented elsewhere in the repo (README, a
+   component's own source file) and flag if those now look stale — fix before drafting the
+   body. Accurate docs are part of the change, not a follow-up.
 3. Draft a PR body:
    - Title under 70 characters, following Conventional Commits (`feat:`, `fix:`, `chore:`,
      …) per `AGENTS.md`.
