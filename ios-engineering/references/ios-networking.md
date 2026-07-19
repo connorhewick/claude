@@ -12,6 +12,8 @@ A production iOS networking layer is three thin layers — **Endpoint** (a value
 
 **Async/await is the default; Combine is an adapter, not a foundation.** `URLSession.data(for:)` cooperates with structured concurrency: cancel the enclosing `Task` and the request cancels too, for free. Combine publishers require manual `AnyCancellable` lifetime management, which is the single biggest source of leaked requests in legacy code. Only expose a publisher when an existing Combine pipeline consumes it — and build it by wrapping the async call, not the other way around.
 
+**Isolation is explicit, not inherited.** New projects default to `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` (SE-0466), and an unannotated `async` call now runs in the *caller's* context instead of hopping off main (SE-0461) — so a networking layer with no isolation annotation of its own silently runs on the main actor the moment a `@MainActor` view model calls it. Mark the client and its free functions `nonisolated` explicitly; reserve `@concurrent` for CPU-bound work inside it — decoding a large payload — that genuinely needs a background thread.
+
 **Endpoints are values, clients are machines.** A request is *data*: method, path, query, headers, body. Encode that as a struct conforming to an `Endpoint` protocol. The client is the only place that knows about `URLSession`, JSON coders, retries, and auth. Because endpoints are values, you can log them, diff them in tests, and add a new API call without touching the client. If adding an endpoint requires editing the client, the layering is wrong.
 
 **The error taxonomy is the contract.** There are exactly three failure families, and they demand different responses:
@@ -38,6 +40,7 @@ Collapsing these into one generic `NetworkError.unknown` is the root cause of ap
 | Background transfer? | `URLSession(configuration: .background)` with delegate, only for large up/downloads that must survive suspension | Background sessions can't use async/await bodies and add huge complexity — don't default to them |
 | Decode where? | In the client, generically (`Decodable` constraint) | One decoder config (dates, key strategy) — per-call decoding drifts |
 | Errors as `Error` or typed enum? | One public `APIError` enum with three cases wrapping the underlying errors | Callers switch on policy, not on `localizedDescription` |
+| Client actor isolation? | Explicit `nonisolated` (or its own actor) — never left to inherit the default | Under SE-0466 default main-actor isolation, an unannotated client silently pins itself to `@MainActor` |
 
 ## Workflow
 
@@ -99,7 +102,7 @@ struct GetUser: Endpoint {
 ### Generic client with strict mapping
 
 ```swift
-final class APIClient: Sendable {
+nonisolated final class APIClient: Sendable {
     private let session: URLSession        // injected — tests pass a URLProtocol-backed one
     private let baseURL: URL
     private let decoder: JSONDecoder
@@ -155,7 +158,7 @@ actor TokenRefresher {
 ### Retry with capped exponential backoff + jitter
 
 ```swift
-func withRetry<T>(maxAttempts: Int = 3,
+nonisolated func withRetry<T>(maxAttempts: Int = 3,
                   operation: () async throws -> T) async throws -> T {
     for attempt in 1... {
         do { return try await operation() }
@@ -202,7 +205,7 @@ let client = APIClient(session: URLSession(configuration: config), ...)
 | App hammers server during an outage | Retrying all errors, no backoff, no cap | Retry only `isRetryable`, exponential backoff + jitter, max 3 attempts, honor `Retry-After` |
 | "The data couldn't be read" with no further info | `DecodingError` swallowed into a generic error | `.decoding` case carries the raw body; log it (redacted) with the failing key path |
 | Duplicate orders/payments after flaky network | Retrying non-idempotent POSTs | Only retry idempotent requests, or attach an `Idempotency-Key` header the server deduplicates |
-| UI hangs during requests | Synchronous waits (`DispatchSemaphore`) bridging async code, or decoding 50 MB on the main actor | Never block; keep the client off `@MainActor`, hop to main only for UI state |
+| UI hangs during requests | Synchronous waits (`DispatchSemaphore`) bridging async code, or an unannotated client silently inheriting `@MainActor` under SE-0466 default isolation | Never block; mark the client `nonisolated` explicitly, hop to main only for UI state; use `@concurrent` for heavy decoding |
 | Tests are flaky and slow | Hitting a real staging server | `URLProtocol` stubs + injected session; inject the sleep in retry tests |
 | 401 loop drains battery | Replaying after refresh without a replay cap | Replay exactly once; a second 401 escalates to forced re-login |
 | Mysterious stale responses | `URLCache` serving cached GETs during debugging | Use `.ephemeral` configuration in tests; set explicit `cachePolicy` where freshness matters |
@@ -216,7 +219,7 @@ let client = APIClient(session: URLSession(configuration: config), ...)
 - [ ] `URLSession` and `JSONDecoder` are injected — no `URLSession.shared` reachable from production paths used in tests
 - [ ] Cancellation propagates: cancelling the caller's `Task` cancels the request and any backoff sleep
 - [ ] Decoding failures log the raw body (truncated, PII-redacted) and the `DecodingError` key path
-- [ ] No network call on `@MainActor`; only published UI state hops to main
+- [ ] Client (and its free functions) is explicitly `nonisolated` — not left to inherit `@MainActor` under default isolation; only published UI state hops to main
 - [ ] `URLProtocol` tests cover: each error bucket, 401→refresh→replay, retry policy, exact request shape
 - [ ] One `JSONDecoder` configuration (date strategy, key strategy) defined once in the client
 - [ ] Endpoints contain no `URLSession`, auth, or retry logic — pure values
