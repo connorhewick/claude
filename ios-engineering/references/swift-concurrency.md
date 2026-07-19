@@ -1,6 +1,6 @@
 # Swift Concurrency Patterns
 
-Write Swift concurrent code (Swift 5.9–6.2+, iOS 17 era) that the compiler can prove
+Write Swift concurrent code (Swift 5.9–6.4+, iOS 17 era) that the compiler can prove
 data-race-free, that cancels cleanly, and that keeps the main thread responsive — not code
 that merely "works in testing."
 
@@ -54,7 +54,11 @@ final classes with immutable state, or `@unchecked Sendable` types that protect 
 (e.g., with a lock). Under strict concurrency checking (`SWIFT_STRICT_CONCURRENCY=complete`,
 the Swift 6 default), every captured value crossing a boundary must be Sendable. Don't silence
 warnings with `@unchecked Sendable` unless the type genuinely synchronizes internally — that
-annotation is a promise to the compiler that *you* now keep manually.
+annotation is a promise to the compiler that *you* now keep manually. Swift 6.4 adds the inverse
+signal: `~Sendable` (SE-0518) explicitly suppresses Sendable conformance on a type, so a reviewer
+— or the `-require-explicit-sendable` diagnostic — can tell "deliberately not thread-safe" apart
+from "nobody's audited this yet." Reach for it on public types you never want auto-inferred as
+Sendable.
 
 ### `@MainActor` is a type-system fact, not a runtime hope
 
@@ -86,7 +90,12 @@ than assuming.
 Cancelling a task sets a flag; nothing stops unless the code checks. Built-in awaits
 (`URLSession`, `Task.sleep`) check for you; your loops and CPU-bound work must call
 `try Task.checkCancellation()` or read `Task.isCancelled`. A task that ignores cancellation
-holds resources, burns battery, and delays UI teardown.
+holds resources, burns battery, and delays UI teardown. Swift 6.4 adds a sanctioned exception:
+`withTaskCancellationShield { … }` (SE-0504) runs a closure as though the task were not
+cancelled, for short cleanup/rollback work that must finish even after cancellation — shield
+only the cleanup, never the whole operation, or you've just hidden cancellation instead of
+handling it. The same release lifts the old restriction on `await` inside `defer` (SE-0493), so
+that cleanup can live directly in a `defer` block instead of being spun off into a detached task.
 
 ## Decision Framework
 
@@ -99,6 +108,7 @@ holds resources, burns battery, and delays UI teardown.
 | Dynamic number of concurrent operations | `withThrowingTaskGroup` | Bounded by scope, supports streaming results and cancellation |
 | Bridging sync context (button tap, delegate) into async | `Task {}` (store handle if cancellable) | The one legitimate unstructured entry point |
 | Work must outlive view/object, independent priority | `Task.detached` — rare | Loses actor context and priority inheritance; justify in a comment |
+| Cleanup/rollback that must finish even though the task was cancelled | `withTaskCancellationShield` (SE-0504, Swift 6.4) | Lets already-started cleanup complete without hiding cancellation from the rest of the task |
 | Stream of values over time (events, sockets) | `AsyncStream`/`AsyncSequence` | Native backpressure via pull; prefer over Combine for new code |
 | Existing Combine pipelines, UIKit bindings | Keep Combine, bridge with `.values` | Rewriting working pipelines is churn, not progress |
 | Module already has `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` set | Stop adding explicit `@MainActor` — it's redundant; mark background work `@concurrent` instead | Matches the project's chosen model; redundant annotations are noise reviewers learn to ignore |
@@ -292,6 +302,7 @@ guarantee, opposite default — one writes `@MainActor` to get main-thread safet
 | Stale result overwrites fresh one | Two loads race; the slower finishes last | Cancel the previous task before starting a new one (see view model pattern) and ignore `CancellationError` |
 | CPU-bound work jams the UI in a new Xcode 26 project despite being `async` | Default `MainActor` isolation means unmarked "async" work still runs on main; `@concurrent` was never applied | Mark decode/image/search-style CPU-bound functions `@concurrent` explicitly — the setting doesn't move heavy work off main by itself |
 | Reviewers flag "redundant" `@MainActor` annotations everywhere | Explicit annotations added out of habit in a module that already has `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` set | Check the target's default-isolation setting before annotating; stop adding what the module default already provides |
+| Rollback/cleanup skipped mid-cancellation, leaving state half-mutated | Cancellation checked (or an `await` fails) inside the cleanup path itself | Wrap only the cleanup closure in `withTaskCancellationShield` (SE-0504, Swift 6.4) — shield the cleanup, not the operation it's cleaning up after |
 
 ## Quality Checklist
 
@@ -311,3 +322,7 @@ guarantee, opposite default — one writes `@MainActor` to get main-thread safet
       + Approachable Concurrency, or fully explicit per-type annotation) before annotating new code
 - [ ] In a default-`MainActor`-isolated module, CPU-bound work is marked `@concurrent`
       deliberately — "it's `async`" alone doesn't move it off main
+- [ ] Public types intentionally not thread-safe declare `~Sendable` (SE-0518, Swift 6.4) rather
+      than leaving Sendable conformance silently unstated
+- [ ] `withTaskCancellationShield` (SE-0504, Swift 6.4), if used, wraps only short cleanup —
+      never a whole long-running operation
