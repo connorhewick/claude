@@ -1,8 +1,9 @@
 # claude
 
 A composable library of personal Claude Code customizations. Each customization — a skill,
-agent, or rule — lives in its own top-level directory with its source file and a `README.md`.
-`install.sh` copies the ones you want into `~/.claude/` (or `$CLAUDE_CONFIG_DIR`, if set);
+agent, or rule — lives in its own top-level directory with its source file, which doubles as
+that component's documentation. `install.sh` copies the ones you want into `~/.claude/` (or
+`$CLAUDE_CONFIG_DIR`, if set);
 `uninstall.sh` removes exactly what was installed.
 
 This is a personal config repo, not a team-distributed product — there's no plugin marketplace,
@@ -50,7 +51,9 @@ Two more component types are supported by `install.sh`/`uninstall.sh` but have n
 ## Adding a new component
 
 1. Create `<name>/` with its source file (`SKILL.md`, `agent.md`, `rule.md`, `command.md`,
-   `hook.sh` + `hook.json`, `output-style.md`, or `statusline.sh`) and a `README.md`.
+   `hook.sh` + `hook.json`, `output-style.md`, or `statusline.sh`). That file is the
+   component's documentation as well as its implementation — capture any non-obvious "why"
+   (design trade-offs, what it was split out of) in its own section rather than a separate doc.
 2. Add a row to the component table above.
 3. Touch four things across `install.sh` / `uninstall.sh` (plus `components.sh`, shared by
    both):

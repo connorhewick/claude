@@ -27,7 +27,6 @@ install_skill() {
   local staging
   staging="$(mktemp -d)"
   cp -r "$SRC/$name/." "$staging/"
-  rm -f "$staging/README.md"
 
   if [[ -d "$dest" ]] && diff -rq "$staging" "$dest" >/dev/null 2>&1; then
     echo "skill $name is already up to date — nothing to do."

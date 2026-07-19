@@ -1,7 +1,19 @@
 #!/bin/bash
-# Claude Code statusline script
-# Reads JSON from stdin, parses with jq, and outputs a single
-# pipe-delimited (" | ") status line with ANSI colors always enabled.
+# Claude Code statusline script. Installs to
+# ~/.claude/statuslines/statusline.sh (+ patches ~/.claude/settings.json's
+# .statusLine).
+#
+# Reads the session JSON Claude Code pipes in on stdin, parses with jq, and
+# outputs a single pipe-delimited (" | ") status line, ANSI colors always on:
+# current folder, git branch (* if dirty, up/down arrows if ahead/behind
+# upstream), model name (colored by model), effort level, permission mode, a
+# 10-block context-usage bar (colored by thresholds), tokens used, cache-hit
+# %, session cost, and the 5-hour rate-limit usage with reset time.
+#
+# Install clears any previous .statusLine this component set; it never
+# touches a statusline configured some other way, and uninstalling only
+# clears .statusLine if it still points here (see install_statusline_file /
+# uninstall_statusline_file in ../common.sh).
 
 export GIT_OPTIONAL_LOCKS=0
 
