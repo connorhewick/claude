@@ -33,7 +33,9 @@ Accepted
 
 Rules:
 - One ADR per decision. Don't retroactively edit a past ADR to reflect a later change — write
-  a new one and reference the superseded one in its Context.
+  a new one and reference the superseded one in its Context. The ADR set is an append-only
+  record of what was decided and why *at the time*; rewriting a past one erases the context a
+  later reader needs to understand how the current state came to be.
 - Keep it factual and dated; don't pad it to look thorough.
 - If a decision is already captured elsewhere (e.g. a `DECISIONS.md` log), an ADR is only
   warranted when the decision is significant/hard-to-reverse enough to need the fuller
