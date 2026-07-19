@@ -26,9 +26,11 @@ detect the regression.
 
 120Hz displays give you ~8ms per frame on the main thread; 60Hz gives ~16ms. Anything on the
 main thread that can exceed the budget — JSON decoding, image decode, Core Data fetches,
-synchronous disk I/O — is jank waiting for a slow device. Averages lie; hitches are caused by
-the *worst* frame, so look at hitch metrics and the Time Profiler's heaviest stacks during
-interaction, not mean CPU.
+synchronous disk I/O — is jank waiting for a slow device. Under Swift 6.2's default `MainActor`
+isolation (Xcode 26's default for new projects), an `async` function does not leave main by
+itself — CPU-bound work needs an explicit `@concurrent` to actually hop off (see
+`swift-concurrency.md`). Averages lie; hitches are caused by the *worst* frame, so look at
+hitch metrics and the Time Profiler's heaviest stacks during interaction, not mean CPU.
 
 ### Structs are cheap until they're big and copied often
 
@@ -81,11 +83,12 @@ abandoned-but-reachable memory, which is more common than true leaks.
 
 | Symptom | Start with |
 |---|---|
-| Scrolling jank, animation hitches | Time Profiler (main thread, during interaction) + Animation Hitches template |
+| Scrolling jank, animation hitches | Time Profiler (main thread, during interaction) + Animation Hitches template; the SwiftUI instrument (Xcode 26+) to see which view updated and why |
+| Hitch traced to an `await`, unclear whether work actually left main | Swift Concurrency instrument (Xcode 26+) — Swift Task Collections show task scheduling, actor contention, and thread usage |
 | Slow cold launch | App Launch template; XCTest `XCTApplicationLaunchMetric` for regression |
 | Memory growth / jetsam kills | Allocations with generation marking; Leaks for cycles; memgraph for who-retains-whom |
 | Battery complaints | Energy Log + Network instrument (radio wake-ups dominate) |
-| Slow specific operation | `os_signpost` around it + Time Profiler; `XCTMeasure` to lock in the win |
+| Slow specific operation | `os_signpost` around it + Time Profiler, or CPU Counters' guided preset modes (Xcode 26+) for microarchitecture-level stalls; `XCTMeasure` to lock in the win |
 | SwiftData/Core Data slowness | Core Data instrument (fetch counts, faulting churn — applies to SwiftData's underlying store too) — see `swiftdata-schema-designer.md` |
 
 ### Optimize vs. ship
@@ -110,16 +113,19 @@ Polymorphism in a hot loop → generics or enums over existentials.
 2. **Establish a baseline**: Release build, real device, the scenario scripted or repeatable.
    Record the number (hitch rate, ms, MB) — this is the success criterion.
 3. **Profile with the matching instrument** (table above). Invert the call tree, hide system
-   libraries first, look at the heaviest stack during the bad moment.
+   libraries first, look at the heaviest stack during the bad moment — Xcode 26's Top Functions
+   view surfaces this without manual inversion.
 4. **Form one hypothesis** from the top of the profile. Add `os_signpost` intervals if the
    hot region is ambiguous.
 5. **Fix only the top item.** Apply the relevant pattern below (move off main, downsample,
    reserve capacity, kill the O(n²), break the cycle). Resist drive-by "optimizations" of
    code the profile didn't name.
 6. **Re-measure the same scenario.** No improvement → revert, back to step 4. Improvement →
-   record before/after.
+   record before/after — Xcode 26's Instruments run comparison diffs the two traces directly.
 7. **Lock it in**: add an `XCTMeasure`-based performance test or MetricKit/launch baseline so
-   the win can't silently regress.
+   the win can't silently regress. (MetricKit is being rebuilt in iOS 27 around a Swift-first,
+   async `MetricManager` API — adopt it once your deployment floor allows; today's floor is
+   iOS 26, so `MXMetricManager` is still current.)
 8. **Verify against the Quality Checklist** below.
 
 ## Patterns
@@ -216,15 +222,21 @@ megabytes.
 ### Keeping the main thread inside the frame budget
 
 ```swift
-// Heavy work computed off the main actor; only the result hops back.
+// Default `MainActor` isolation (Swift 6.2): CPU-bound work opts out explicitly instead of
+// reaching for Task.detached.
 func search(_ query: String) async {
-    let posts = self.posts
-    let matches = await Task.detached(priority: .userInitiated) {
-        posts.filter { $0.matches(query) }      // pure function over Sendable input
-    }.value
-    self.results = matches                       // back on @MainActor
+    results = await matches(in: posts, query: query)   // hops off, then back, deliberately
+}
+
+@concurrent
+private func matches(in posts: [Post], query: String) async -> [Post] {
+    posts.filter { $0.matches(query) }                  // pure function over Sendable input
 }
 ```
+
+`Task.detached(priority:)` is still the right call in a codebase using fully explicit per-type
+isolation (no `SWIFT_DEFAULT_ACTOR_ISOLATION` set) — see `swift-concurrency.md`'s decision
+table for when each model applies.
 
 ## Pitfalls / Anti-Patterns
 
@@ -236,6 +248,7 @@ func search(_ query: String) async {
 | Memory spikes when a photo screen opens | Full-resolution decode of large images into memory | ImageIO downsampling to display size; `prepareForDisplay`/`byPreparingThumbnail` on iOS 15+ |
 | Lazy chain made things slower | Lazy sequence iterated multiple times, re-running closures each pass | Materialize with `Array(...)` when consumed more than once; lazy only for single-pass/early-exit |
 | Hitches during scroll despite "fast" code | Synchronous decode/layout/Core Data faulting on the main thread per cell | Precompute and cache cell view-models; decode images off-main; batch fetches |
+| CPU-bound work still shows up on the main thread despite being `async` | Default `MainActor` isolation (Swift 6.2) means unmarked async work runs on main; no `@concurrent` applied | Mark decode/filter/search-style CPU-bound functions `@concurrent` explicitly — see `swift-concurrency.md` |
 | Memory climbs forever, Leaks instrument finds nothing | Abandoned memory: caches without eviction, screens retained by closures/observers | Allocations generation marking around the flow; `[weak self]` in long-lived closures; `NSCache` or explicit eviction |
 | String processing crawls on large input | Index arithmetic on `String` (O(n) per index) in a loop | Single-pass character iteration or `UTF8View`; avoid repeated `index(_:offsetBy:)` |
 | Array building dominates the trace | Incremental growth reallocations or repeated `+=` on `String` in loops | `reserveCapacity`; collect then `joined()` |
@@ -245,7 +258,7 @@ func search(_ query: String) async {
 
 - [ ] A baseline measurement (Release, real device, defined scenario) exists from *before* the change, and the after-number beats it
 - [ ] The optimization targets the top of an actual profile, not a hunch
-- [ ] Main thread does no synchronous I/O, JSON decoding, or image decoding in interaction paths
+- [ ] Main thread does no synchronous I/O, JSON decoding, or image decoding in interaction paths — including CPU-bound `async` work, which is marked `@concurrent` under default `MainActor` isolation rather than assumed to be off main
 - [ ] Hitch rate / frame timing checked during the affected interaction, not just averages
 - [ ] Images are downsampled to display size before reaching image views
 - [ ] Hot loops audited: no accidental CoW copies, membership tests use `Set`, capacity reserved
