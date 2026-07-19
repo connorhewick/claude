@@ -131,11 +131,14 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
   consistency within a codebase beats theoretical purity.
 - **Respect security boundaries.** Never store credentials in `UserDefaults`, log sensitive
   data, or bypass authentication; see `references/ios-security.md`.
-- **iOS 17 is the floor, not a ceiling to justify.** Default to iOS 17+ APIs (`@Observable`,
-  `NavigationStack`, structured concurrency). If a task needs or would meaningfully benefit from
-  something newer than 17 — raising the effective minimum deployment target further — that's a
-  deployment-target decision, not an implementation detail: flag it and record it with
-  `write-adr` before adopting the newer API, rather than quietly raising the floor.
+- **iOS 26 is the default floor for new work, not a ceiling to justify.** As of mid-2026, iOS 26
+  covers roughly 60–85% of active iOS devices depending on the metric (all-active vs.
+  device-age-adjusted), and Apple already requires the iOS 26 SDK to build (April 2026) — so
+  targeting 26 as the deployment floor for a greenfield app or feature is the reasonable default
+  now, not an aggressive one. This is a default for *new* work only: an existing codebase's real
+  deployment target (from project discovery) always wins — never silently raise an existing
+  project's floor. Needing something *newer* than 26 is still the same decision as before: flag
+  it and record it with `write-adr` rather than quietly adopting it.
 - **Record the resulting decision.** If a scaffolding/architecture choice is significant or
   hard to reverse, use this repo's `write-adr` skill to record it — this skill doesn't do
   trade-off analysis or ADR-writing itself.
