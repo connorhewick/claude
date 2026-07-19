@@ -30,7 +30,11 @@ relevant to the task at hand, not all nine every time.
 
 Before doing any work:
 - Detect the stack: `Package.swift`/`.xcodeproj`, deployment target, SwiftUI vs UIKit,
-  SwiftData/Core Data presence, networking library.
+  SwiftData/Core Data presence, networking library, and whether the target has Swift 6.2's
+  default `MainActor` isolation enabled (`SWIFT_DEFAULT_ACTOR_ISOLATION`/Approachable
+  Concurrency) or uses fully explicit per-type annotation — this changes whether `@MainActor`/
+  `nonisolated`/`@concurrent` need writing out across scaffolding, networking, and performance
+  work; see `swift-concurrency.md`.
 - Detect the architecture: source layers (`Models/`, `ViewModels/`, `Views/`, `Services/`,
   `Networking/`), DI pattern, any `CLAUDE.md`/`ARCHITECTURE.md` (source of truth for
   conventions), SwiftUI property-wrapper usage, and whether the codebase is already MVVM, MV,
@@ -50,9 +54,9 @@ Before doing any work:
 | async/await, Actor isolation, approachable concurrency, Task safety, data races | `references/swift-concurrency.md` | Any threading/concurrency/async work |
 | URLSession, HTTP client design, retries, auth | `references/ios-networking.md` | Networking/API client work |
 | SwiftUI state management, view composition, navigation | `references/swiftui-patterns.md` | View/UI work |
-| Swift Testing/XCTest infrastructure, mocking, fixtures | `references/xctest-patterns.md` | Any test-writing task |
+| Swift Testing/XCTest infrastructure, mocking, fixtures | `references/swift-testing-patterns.md` | Any test-writing task |
 | Instruments profiling, memory/CPU/battery | `references/swift-performance.md` | "slow", "optimize", "memory leak" |
-| Keychain, biometrics, ATS, secrets handling | `references/ios-security.md` | Auth/credential/token storage work |
+| Keychain, biometrics, ATS, secrets handling, memory-safety hardening | `references/ios-security.md` | Auth/credential/token storage work |
 
 Announce which reference you're reading before reading it (e.g. "Reading `ios-networking.md` for
 the HTTP client pattern").
@@ -75,7 +79,7 @@ binding").
 architecture choice and scaffold pattern (MVVM by default) → Codable types
 (`swift-codable-designer.md`) → persistence if needed (`swiftdata-schema-designer.md`) →
 repository/service layer → ViewModel (`@Observable`, async/await) → View
-(`swiftui-patterns.md`) → networking (`ios-networking.md`) → tests (`xctest-patterns.md`,
+(`swiftui-patterns.md`) → networking (`ios-networking.md`) → tests (`swift-testing-patterns.md`,
 Swift Testing by default) → self-review against each reference's Quality Checklist.
 
 **Add/modify a view:** `swiftui-patterns.md` for state management and composition → build/modify
@@ -85,7 +89,7 @@ the view → extend ViewModel/Repository as needed → tests for the view layer.
 (`swift-codable-designer.md` if complex) → `swift-concurrency.md` for async error handling →
 tests with mocked `URLSession` → `ios-security.md` if auth/token storage is involved.
 
-**Write or fix tests:** `xctest-patterns.md` for fixture/mock strategy (Swift Testing by default,
+**Write or fix tests:** `swift-testing-patterns.md` for fixture/mock strategy (Swift Testing by default,
 XCTest for XCUITest/`measure(metrics:)`) → identify the test boundary (unit vs integration vs UI)
 → Arrange/Act/Assert → run and fix failures.
 
@@ -102,7 +106,7 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
 |---|---|
 | New feature/domain/entity | `ios-service-generator.md` |
 | Existing view, layout, state | `swiftui-patterns.md` |
-| Tests, coverage, mocks | `xctest-patterns.md` |
+| Tests, coverage, mocks | `swift-testing-patterns.md` |
 | "slow", "profile", "optimize", "memory" | `swift-performance.md` |
 | "security", "keychain", "tokens", "biometric" | `ios-security.md` |
 | "model", "Codable", "API response" | `swift-codable-designer.md` |
@@ -120,7 +124,10 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
   shortcut would violate layers, flag it and ask.
 - **Protocol-first at seams, not everywhere.** Define protocols for services/clients/stores;
   skip them for pure value types. Dependencies wire via initializers, not singletons.
-- **Main thread safety.** Never block the main thread; `@MainActor` on UI-update code only.
+- **Main thread safety.** Never block the main thread. Under explicit-annotation targets,
+  `@MainActor` goes on UI-update code only; under a default-`MainActor`-isolated target,
+  everything else (services, clients, CPU-bound work) needs explicit `nonisolated`/`@concurrent`
+  instead — see `swift-concurrency.md` for detecting which model applies.
 - **Test what you build.** New ViewModels/Views/networking layers ship with tests unless the
   user explicitly says to skip them.
 - **Justify new dependencies.** State alternatives considered; prefer stdlib/Apple frameworks.
@@ -149,7 +156,7 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
   adapt — the references still apply even if the wiring differs; see `ios-service-generator.md`'s
   architecture-choice section if a fresh choice is needed.
 - **Missing test infrastructure:** suggest a Swift Testing target by default (an XCTest target
-  only for XCUITest or if the codebase is already XCTest-only); see `xctest-patterns.md`.
+  only for XCUITest or if the codebase is already XCTest-only); see `swift-testing-patterns.md`.
 - **Conflicting conventions:** follow the codebase's existing pattern for consistency, but note
   the deviation from a reference's recommendation in your response.
 - **Requirements change mid-workflow:** don't silently patch — acknowledge the change, identify
