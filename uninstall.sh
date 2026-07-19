@@ -27,6 +27,9 @@ uninstall_device_logs()         { uninstall_skill  device-logs; }
 uninstall_port_ios_to_web()     { uninstall_skill  port-ios-to-web; }
 uninstall_port_web_to_ios()     { uninstall_skill  port-web-to-ios; }
 uninstall_doc_sync()            { uninstall_skill  doc-sync; }
+uninstall_session_handoff()     { uninstall_skill  session-handoff; }
+uninstall_component_review()    { uninstall_skill  component-review; }
+uninstall_ios_engineering()     { uninstall_skill  ios-engineering; }
 uninstall_statusline()          { uninstall_statusline_file statusline; }
 uninstall_global_rules()        { uninstall_claude_md_file global-rules; }
 uninstall_git_rules()           { uninstall_rule git-rules; }
@@ -43,6 +46,9 @@ run_uninstaller() {
     port-ios-to-web)      uninstall_port_ios_to_web ;;
     port-web-to-ios)      uninstall_port_web_to_ios ;;
     doc-sync)             uninstall_doc_sync ;;
+    session-handoff)      uninstall_session_handoff ;;
+    component-review)     uninstall_component_review ;;
+    ios-engineering)      uninstall_ios_engineering ;;
     statusline)           uninstall_statusline ;;
     global-rules)         uninstall_global_rules ;;
     git-rules)            uninstall_git_rules ;;

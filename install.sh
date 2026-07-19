@@ -28,6 +28,9 @@ install_device_logs()         { install_skill  device-logs; }
 install_port_ios_to_web()     { install_skill  port-ios-to-web; }
 install_port_web_to_ios()     { install_skill  port-web-to-ios; }
 install_doc_sync()            { install_skill  doc-sync; }
+install_session_handoff()     { install_skill  session-handoff; }
+install_component_review()    { install_skill  component-review; }
+install_ios_engineering()     { install_skill  ios-engineering; }
 install_statusline()          { install_statusline_file statusline; }
 install_global_rules()        { install_claude_md_file global-rules; }
 install_git_rules()           { install_rule git-rules; }
@@ -44,6 +47,9 @@ run_installer() {
     port-ios-to-web)      install_port_ios_to_web ;;
     port-web-to-ios)      install_port_web_to_ios ;;
     doc-sync)             install_doc_sync ;;
+    session-handoff)      install_session_handoff ;;
+    component-review)     install_component_review ;;
+    ios-engineering)      install_ios_engineering ;;
     statusline)           install_statusline ;;
     global-rules)         install_global_rules ;;
     git-rules)            install_git_rules ;;
