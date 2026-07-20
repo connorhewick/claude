@@ -130,6 +130,9 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
   instead — see `swift-concurrency.md` for detecting which model applies.
 - **Test what you build.** New ViewModels/Views/networking layers ship with tests unless the
   user explicitly says to skip them.
+- **Keep `xcodebuild` output filtered.** Any `xcodebuild` call (build, test, build-for-testing)
+  defaults to a pass/fail/error filter, not the raw log — see `swift-testing-patterns.md`'s
+  Workflow for the command. Only drop to the unfiltered log to diagnose a specific failure.
 - **Justify new dependencies.** State alternatives considered; prefer stdlib/Apple frameworks.
 - **Profile before optimizing.** Never assume the bottleneck — measure first.
 - **Don't over-generate.** Match the scope of the response to the scope of the request — one

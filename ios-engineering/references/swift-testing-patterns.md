@@ -155,6 +155,17 @@ only what matters (`Order.fixture(status: .expired)` — the noise stays in the 
    parallel-by-default Swift Testing execution surfaces shared-state bugs faster than XCTest did
    — confirm each new test fails when the behavior is broken (mutate or revert the fix briefly),
    then verify against the Quality Checklist.
+9. **In an agentic session, default any `xcodebuild` invocation (build, test, or
+   build-for-testing) to filtered output** — the raw log is mostly build-graph noise (Copy,
+   CodeSign, Touch lines) and burns context fast for no signal. Pipe through a formatter if one's
+   installed (`xcodebuild ... | xcbeautify`), or fall back to a grep filter that keeps the
+   pass/fail signal:
+   ```sh
+   xcodebuild test -scheme MyApp -destination '...' 2>&1 \
+     | grep -E '✔|✘|error:|BUILD (SUCCEEDED|FAILED)|TEST (BUILD|EXECUTE) (SUCCEEDED|FAILED)'
+   ```
+   Only re-run unfiltered (or inspect the `.xcresult` bundle the log points to) when a failure
+   needs the surrounding build/compiler context to diagnose.
 
 ## Patterns
 

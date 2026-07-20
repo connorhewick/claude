@@ -12,7 +12,8 @@ file it can't back up.
 ## Working method (every project)
 
 - Plan-first on non-trivial work (3+ steps or an architectural choice): write a short spec and a
-  checklist before editing. If the approach stops working, stop and re-plan rather than pushing on.
+  checklist before editing. If the approach stops working, stop and re-plan rather than pushing
+  on. See "spec first planning" below for the process, including when to skip it.
 - Keep the main context clean by delegating research, parallel investigation, and isolated
   multi-step work to subagents — one focused task per subagent, not a vague "look into X."
   - Delegate when the work is read-only investigation, spans independent areas that can run in
@@ -20,11 +21,21 @@ file it can't back up.
     doesn't need to keep. Keep it inline when the task needs to interview the user (subagents
     can't call `AskUserQuestion`), needs context the parent has already built that costs more to
     re-derive than to reuse, or is a single trivial step.
+  - Get approval before dispatching, whenever delegation looks warranted: present the plan —
+    what each subagent will do and why it's not just done inline — plus an explicit read on
+    whether the extra cost (see the fan-out cost note below) is worth it for this task. Wait for
+    the user to approve or decline the strategy before dispatching anything.
   - Hand off relevant components rather than expecting a subagent to find them: before
     dispatching, identify which installed skills/rules the task needs and put their names and
     operative instructions directly in the subagent's prompt.
   - Run independent subagents in parallel, in one dispatch; run them sequentially only when one
     needs a prior one's output. Converge results back in the main session before acting on them.
+  - Parallel fan-out isn't free just because it's parallel: each subagent starts cold and
+    re-derives shared context (the same file, the same codebase scan) independently, so total
+    tokens across N subagents run roughly N× a serial equivalent — it buys wall-clock time and
+    keeps the parent's context clean, not a smaller total. Reserve wide fan-outs (many subagents
+    over the same corpus) for genuine one-shot broad surveys; don't reach for one as the default
+    shape for routine per-task delegation.
 - Definition of done: a change is done only when the relevant checks/tests pass, a human has
   reviewed and approved it, and the task's stated acceptance criteria are met — none of these
   alone is sufficient. Don't declare something done on partial satisfaction of this list.
@@ -73,40 +84,12 @@ don't start editing files first.
 Do not skip straight to implementation on a multi-step task just because the shape of the
 change seems obvious — a wrong early assumption is more expensive to unwind after code exists.
 
+**Exception:** skip this entirely for a single-file, mechanically-scoped fix — a well-understood
+bug with an obvious fix, a lint/warning/format cleanup, a small change with no competing approach
+to choose between — even if it takes several edits. The dividing line is whether a decision
+exists that only the user could make (an approach choice, an ambiguous scope, a hard-to-reverse
+call); if there isn't one, the plan would just restate the diff back to the user before making it.
+
 Documentation conventions (ADRs, ticket/doc naming) live in the separate `documentation-rules`
 component — see `~/.claude/rules/documentation-rules.md`. SwiftUI conventions live in
 `swiftui-rules` — see `~/.claude/rules/swiftui-rules.md`.
-
-# Engineering conventions
-
-## Definition of done
-
-A change is done only when **all** of the following hold:
-- Any checks this repo defines for itself (shellcheck, a dry-run install/uninstall) pass.
-- CI is green.
-- A human has reviewed and approved the change.
-- The task's stated acceptance criteria are met.
-
-None of these alone is sufficient. Do not declare a task complete on partial satisfaction of
-this list.
-
-## Code walkthrough + interview (human in the loop)
-
-Before handing a non-trivial change off for review or a PR — and before treating it as done —
-walk the human through it and interview them for the decisions only they can make. This is the
-mechanism for the "a human has reviewed and approved" clause of the definition of done above,
-and the convergence checkpoint when work is fanned out across parallel agents. Don't skip it on
-multi-file, cross-cutting, or hard-to-reverse changes.
-
-Run it in three steps:
-
-1. **Walkthrough** — narrate the change in review order: the problem it solves, the key files
-   and the path through them, and the decision points or trade-offs taken along the way.
-   Reference code as `file:line`. Lead with the shape of the change, not a line-by-line dump.
-2. **Interview** — ask the questions whose answers you couldn't safely assume: choices between
-   viable approaches, scope you're unsure is in or out, and anything you inferred rather than
-   were told. Use `AskUserQuestion`; record deferred answers as open questions instead of
-   guessing.
-3. **Incorporate** — apply the human's answers before converging the change or opening the PR.
-
-Skip it only for trivial changes (typos, one-line fixes) where there is nothing to decide.
