@@ -118,3 +118,8 @@ delete a component's directory while leaving it wired into `components.sh`/`inst
 `uninstall.sh`/the root `README.md`. A dangling reference to a nonexistent component directory
 breaks `install.sh all`/`uninstall.sh all` for everyone. Dry-run `install.sh`/`uninstall.sh`
 (this repo's check, above) after any add/remove — it's what catches this drift.
+
+The README table's **Invocation** column is the single source of truth for how a component is
+triggered — update it whenever a component's trigger mechanism changes, not only when the
+component is first added: toggling `disable-model-invocation` on a skill, adding/removing a
+rule's `paths` scope, or anything else that changes how it fires.
