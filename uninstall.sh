@@ -30,6 +30,7 @@ uninstall_doc_sync()            { uninstall_skill  doc-sync; }
 uninstall_session_handoff()     { uninstall_skill  session-handoff; }
 uninstall_component_review()    { uninstall_skill  component-review; }
 uninstall_ios_engineering()     { uninstall_skill  ios-engineering; }
+uninstall_harness_portability() { uninstall_skill  harness-portability; }
 uninstall_statusline()          { uninstall_statusline_file statusline; }
 uninstall_global_rules()        { uninstall_claude_md_file global-rules; }
 uninstall_git_rules()           { uninstall_rule git-rules; }
@@ -49,6 +50,7 @@ run_uninstaller() {
     session-handoff)      uninstall_session_handoff ;;
     component-review)     uninstall_component_review ;;
     ios-engineering)      uninstall_ios_engineering ;;
+    harness-portability)  uninstall_harness_portability ;;
     statusline)           uninstall_statusline ;;
     global-rules)         uninstall_global_rules ;;
     git-rules)            uninstall_git_rules ;;

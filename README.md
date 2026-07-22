@@ -39,6 +39,7 @@ clobbered.
 | [`session-handoff`](session-handoff) | skill | `~/.claude/skills/session-handoff/` | Writes a session handoff doc, plus a harness-feedback doc (`~/.claude/harness-feedback/`) on what to keep/change about the Claude Code setup itself |
 | [`component-review`](component-review) | skill | `~/.claude/skills/component-review/` | Audits this repo's own components against `CLAUDE.md`'s type-decision and authoring conventions |
 | [`ios-engineering`](ios-engineering) | skill | `~/.claude/skills/ios-engineering/` | Native iOS/Swift engineering: MVVM scaffolding, SwiftUI, Core Data, networking, concurrency, security, performance, testing (bundles 9 topic references) |
+| [`harness-portability`](harness-portability) | skill | `~/.claude/skills/harness-portability/` | Maps a component from another agent harness onto this repo's own type taxonomy and proposes/applies the port |
 | [`statusline`](statusline) | statusline | `~/.claude/statuslines/statusline.sh` | Folder, git branch, model, effort, context bar, tokens, cache %, cost, rate limit |
 | [`global-rules`](global-rules) | global-rules | `~/.claude/CLAUDE.md` | Personal cross-project defaults, loaded in every project on this machine |
 | [`git-rules`](git-rules) | rule | `~/.claude/rules/git-rules.md` | Personal git/version-control conventions: commits, branches, worktrees, PR hygiene |
@@ -66,8 +67,8 @@ required. How you interact with each depends on its type:
 - **Skills** trigger two ways: automatically, when your request's phrasing matches the skill's
   `description` (the "Triggers for" list in its frontmatter), or explicitly with `/<name>`. Most
   skills in this repo (`write-prd`, `write-adr`, `split-commits`, `ios-engineering`,
-  `session-handoff`, `port-ios-to-web`, `port-web-to-ios`, `component-review`) are written to
-  auto-trigger — describe what you want in plain language and the matching skill fires on its
+  `session-handoff`, `port-ios-to-web`, `port-web-to-ios`, `component-review`,
+  `harness-portability`) are written to auto-trigger — describe what you want in plain language and the matching skill fires on its
   own. A few are deliberately explicit-only (`disable-model-invocation: true`), because the
   action is too consequential to fire without you naming it: `device-logs`, `doc-sync`,
   `prepare-pr`.
