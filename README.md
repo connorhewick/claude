@@ -19,10 +19,10 @@ installs globally, across every project on your machine.
 ./uninstall.sh all               # remove everything this repo installed
 ```
 
-Re-running `install.sh` is safe — anything it would overwrite gets backed up first
-(`<path>.bak.<timestamp>`, or `~/.claude/.component-backups/` for directory-based components
-like skills, so the backup itself is never mistaken for a live component), never silently
-clobbered.
+Re-running `install.sh` is safe — anything it would overwrite gets backed up first to
+`~/.claude/.component-backups/`, never silently clobbered. Backups never land inside the
+directories the harness itself scans (`skills/`, `rules/`, `agents/`, …), so a stale backup is
+never mistaken for a live component or auto-loaded into a session.
 
 ## Components
 
@@ -39,6 +39,8 @@ clobbered.
 | [`session-handoff`](session-handoff) | skill | Auto-trigger or `/session-handoff` | `~/.claude/skills/session-handoff/` | Writes a session handoff doc, plus a harness-feedback doc (`~/.claude/harness-feedback/`) on what to keep/change about the Claude Code setup itself |
 | [`component-review`](component-review) | skill | Auto-trigger or `/component-review` | `~/.claude/skills/component-review/` | Audits this repo's own components against `CLAUDE.md`'s type-decision and authoring conventions |
 | [`ios-engineering`](ios-engineering) | skill | Auto-trigger or `/ios-engineering` | `~/.claude/skills/ios-engineering/` | Native iOS/Swift engineering: MVVM scaffolding, SwiftUI, Core Data, networking, concurrency, security, performance, testing (bundles 9 topic references) |
+| [`python-engineering`](python-engineering) | skill | Auto-trigger or `/python-engineering` | `~/.claude/skills/python-engineering/` | Python backend engineering: FastAPI/SQLAlchemy/Pydantic scaffolding, schema design, queries, async/concurrency, structured logging, performance, pytest (bundles 7 topic references) |
+| [`java-engineering`](java-engineering) | skill | Auto-trigger or `/java-engineering` | `~/.claude/skills/java-engineering/` | Java backend engineering: Spring Boot/JPA scaffolding, DTO/record design, queries, virtual-thread concurrency, structured logging, performance, JUnit/Mockito (bundles 6 topic references) |
 | [`harness-portability`](harness-portability) | skill | Auto-trigger or `/harness-portability` | `~/.claude/skills/harness-portability/` | Maps a component between this repo and another agent harness, in either direction, and proposes/applies the port |
 | [`issue-workplan`](issue-workplan) | skill | Auto-trigger or `/issue-workplan` | `~/.claude/skills/issue-workplan/` | Turns a group of GitHub issues into a self-contained workplan doc for a fresh/autonomous session to implement later |
 | [`harness-scaffold`](harness-scaffold) | skill | Auto-trigger or `/harness-scaffold` | `~/.claude/skills/harness-scaffold/` | Stands up this repo's own component-library structure (manifest, install/uninstall scripts, README index) for a different target harness |
