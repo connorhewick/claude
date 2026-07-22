@@ -20,6 +20,7 @@ ALL_COMPONENTS=(
   session-handoff
   component-review
   ios-engineering
+  harness-portability
   statusline
   global-rules
   git-rules
@@ -31,7 +32,7 @@ is_known_component() {
   case "$1" in
     write-prd|write-adr|prepare-pr|split-commits| \
     device-logs|port-ios-to-web|port-web-to-ios|doc-sync| \
-    session-handoff|component-review|ios-engineering| \
+    session-handoff|component-review|ios-engineering|harness-portability| \
     statusline|global-rules|git-rules|swiftui-rules|documentation-rules)
       return 0 ;;
     *)

@@ -31,6 +31,7 @@ install_doc_sync()            { install_skill  doc-sync; }
 install_session_handoff()     { install_skill  session-handoff; }
 install_component_review()    { install_skill  component-review; }
 install_ios_engineering()     { install_skill  ios-engineering; }
+install_harness_portability() { install_skill  harness-portability; }
 install_statusline()          { install_statusline_file statusline; }
 install_global_rules()        { install_claude_md_file global-rules; }
 install_git_rules()           { install_rule git-rules; }
@@ -50,6 +51,7 @@ run_installer() {
     session-handoff)      install_session_handoff ;;
     component-review)     install_component_review ;;
     ios-engineering)      install_ios_engineering ;;
+    harness-portability)  install_harness_portability ;;
     statusline)           install_statusline ;;
     global-rules)         install_global_rules ;;
     git-rules)            install_git_rules ;;
