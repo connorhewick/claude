@@ -28,8 +28,9 @@ relevant to the task at hand, not all seven every time.
 
 Before doing any work:
 - Detect the stack: `pyproject.toml`/`setup.py` — FastAPI/SQLAlchemy/Pydantic versions, async
-  driver (`asyncpg`, `aiosqlite`), Python version (3.13+ enables free-threaded/no-GIL builds —
-  see `async-programming.md` for when that changes the concurrency calculus), linter (`ruff`).
+  driver (`asyncpg`, `aiosqlite`), Python version (3.14+ ships free-threading as officially
+  supported, though still not the default build — see `async-programming.md` for when that
+  changes the concurrency calculus), linter (`ruff`).
 - Detect the architecture: source layers (`api/`, `services/`, `repositories/`, `models/`,
   `schemas/`, `interfaces/`, `db/`, `dependencies.py`), whether it uses ABC-based interfaces or a
   different DI pattern, and any `CLAUDE.md`/`ARCHITECTURE.md` (source of truth for conventions).

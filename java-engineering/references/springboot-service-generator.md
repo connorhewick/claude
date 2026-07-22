@@ -51,7 +51,7 @@ A production Spring Boot service is a strict, one-directional stack: controller 
 3. **Design the DTO family** — Create (required + validated), Update (all nullable), Response (server-only fields), Filter (query semantics) — add compact-constructor normalization only where Bean Validation can't express the rule.
 4. **Define the service interface**, then implement it — constructor-injected repository/collaborators, `@Transactional` on writes, `@Cacheable`/`@CacheEvict` on reads/writes.
 5. **Define the repository** — `JpaRepository<T, ID>` plus derived/`@Query` methods; consult `jpa-query-patterns.md` for anything beyond simple CRUD.
-6. **Define the controller** — constructor-injected service interface, `@Valid` on the request body, DTOs only in the signature.
+6. **Define the controller** — constructor-injected service interface, `@Valid` on the request body, DTOs only in the signature, and an explicit authorization decision on every endpoint (`@PreAuthorize`/method security, or the codebase's existing equivalent) made at the same time the endpoint is written — never left for a later pass. If the project has no security config yet, or the endpoint is deliberately public, say so explicitly rather than shipping it unauthenticated by omission.
 7. **Wire exception handling** — add new domain exceptions to the shared `@RestControllerAdvice` if needed; never let a controller construct an HTTP status itself.
 8. **Add a MapStruct mapper** for the entity ↔ DTO family, with `NullValuePropertyMappingStrategy.IGNORE` on the update method.
 9. **Instrument logging** at the service/controller boundary — see `slf4j-logback-instrumentation.md`.
@@ -123,6 +123,11 @@ public class Order {
     private Long customerId;
     @Column(nullable = false)
     private BigDecimal totalPrice;          // never Double/Float
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.PENDING;   // matches OrderResponseDTO/OrderUpdateDTO below —
+                                                          // an entity field missing here is a silent
+                                                          // null in the mapped response, not a compile error
     @CreationTimestamp
     private LocalDateTime createdAt;
 }
@@ -266,6 +271,7 @@ public class GlobalExceptionHandler {
 - [ ] Compact constructors used only for structural rules Bean Validation can't express — not duplicating an existing annotation
 - [ ] `@Valid` present on every controller parameter that accepts a Create/Update/Filter DTO
 - [ ] No `@Entity` ever returned directly from a controller method
+- [ ] Every new endpoint has an explicit authorization annotation/check wired, or is explicitly noted as intentionally public — never left unauthenticated by omission
 - [ ] Polymorphic payload fields use a `sealed interface` with a Jackson discriminator, not `Object`
 - [ ] A MapStruct mapper exists for each entity↔DTO family, with `NullValuePropertyMappingStrategy.IGNORE` on the update method
 - [ ] All monetary fields are `BigDecimal`, entity and DTO alike

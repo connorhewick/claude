@@ -28,8 +28,9 @@ relevant to the task at hand, not all six every time.
 
 Before doing any work:
 - Detect the stack: `build.gradle`/`pom.xml` — Spring Boot version, Java version (21+ makes
-  virtual threads and structured concurrency available — see `virtual-threads-concurrency.md`),
-  key dependencies (Spring Data JPA, Spring Security, Resilience4j), migration tool (Flyway,
+  virtual threads available as a standard feature, and structured concurrency available as a
+  still-`--enable-preview`-gated one — see `virtual-threads-concurrency.md`), key dependencies
+  (Spring Data JPA, Spring Security, Resilience4j), migration tool (Flyway,
   Liquibase).
 - Detect the architecture: source layers (`controller/`, `service/`, `repository/`, `model/`,
   `dto/`, `config/`), whether the project uses service interfaces (contract-first) or a different
@@ -67,7 +68,7 @@ Skip planning for single-layer, unambiguous tasks ("add a field to this DTO", "f
 
 **Scaffold a new entity/service (end-to-end):** Project discovery →
 `springboot-service-generator.md` for the layered scaffold pattern and record/DTO design →
-entity (JPA, with auditing mixins) → DTO family (record-based Create/Update/Read) → service
+entity (JPA, with auditing mixins) → DTO family (record-based Create/Update/Response) → service
 interface + implementation (constructor injection) → repository interface
 (`jpa-query-patterns.md` for non-trivial queries) → controller → SLF4J calls at service/repository
 boundaries → tests (`junit-mockito-patterns.md`, unit + `@SpringBootTest`) → self-review against

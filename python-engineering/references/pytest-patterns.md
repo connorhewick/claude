@@ -91,6 +91,12 @@ from app.dependencies import get_session
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
+# pytest.ini / pyproject.toml also needs:
+#   asyncio_default_fixture_loop_scope = session
+# — a session-scoped async fixture (engine, below) run under the default *function*-scoped
+# event loop is a ScopeMismatch waiting to happen; match the loop scope to the widest
+# async fixture scope you actually use, explicitly, rather than relying on the default.
+
 @pytest_asyncio.fixture(scope="session")
 async def engine():
     engine = create_async_engine(TEST_DATABASE_URL)
@@ -104,7 +110,13 @@ async def session(engine):
     """Each test gets its own transaction that rolls back — fast, isolated."""
     async with engine.connect() as conn:
         transaction = await conn.begin()
-        session = AsyncSession(bind=conn, expire_on_commit=False)
+        # join_transaction_mode="create_savepoint" is required, not optional: the default
+        # ("conditional_savepoint") only protects the outer transaction if the connection is
+        # *already* inside a SAVEPOINT, which it isn't here. Without this, any code path the
+        # test exercises that calls session.commit() (e.g. a per-request commit in the
+        # production session dependency) ends the real transaction — the rollback below then
+        # becomes a no-op and rows leak across tests.
+        session = AsyncSession(bind=conn, join_transaction_mode="create_savepoint", expire_on_commit=False)
         yield session
         await session.close()
         await transaction.rollback()
@@ -121,15 +133,30 @@ async def client(session):
 ### Interface fakes over mocking internals
 
 ```python
-# tests/fakes/payment_repository.py
+# tests/fakes/payment_repository.py — implements every abstract method from IRepository AND
+# IPaymentRepository; skipping one leaves the class abstract and raises TypeError on
+# instantiation (see fastapi-service-generator.md's Interface layer for the full contract).
 class FakePaymentRepository(IPaymentRepository):
     def __init__(self) -> None:
         self._store: dict[UUID, Payment] = {}
+
+    async def get_by_id(self, id: UUID) -> Payment:
+        payment = self._store.get(id)
+        if payment is None:
+            raise EntityNotFoundError(entity="Payment", id=id)
+        return payment
 
     async def create(self, entity: Payment) -> Payment:
         entity.id = uuid4()
         self._store[entity.id] = entity
         return entity
+
+    async def update(self, entity: Payment) -> Payment:
+        self._store[entity.id] = entity
+        return entity
+
+    async def delete(self, id: UUID) -> None:
+        self._store.pop(id, None)
 
     async def get_by_reference(self, reference: str) -> Payment:
         for p in self._store.values():

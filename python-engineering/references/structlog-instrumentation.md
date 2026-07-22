@@ -218,10 +218,23 @@ log.info("event", user_data=user_value)
 ```python
 SENSITIVE_KEYS = {"password", "token", "secret", "authorization", "api_key"}
 
+def _redact(value):
+    if isinstance(value, dict):
+        return {k: ("***REDACTED***" if k.lower() in SENSITIVE_KEYS else _redact(v)) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_redact(v) for v in value]
+    return value
+
 def mask_sensitive_fields(logger, method_name, event_dict):
+    # Recurses into nested dicts/lists — a sensitive key one level deep (e.g. logging a whole
+    # `dict(request.headers)` that contains "authorization", or a bound context object with a
+    # nested "password" field) is just as real a leak as a top-level one. A processor that only
+    # checks top-level keys is not the "mechanical guarantee" it claims to be.
     for key in event_dict:
         if key.lower() in SENSITIVE_KEYS:
             event_dict[key] = "***REDACTED***"
+        else:
+            event_dict[key] = _redact(event_dict[key])
     return event_dict
 
 def add_environment(logger, method_name, event_dict):

@@ -20,7 +20,7 @@ Spring Boot testing is a set of deliberate trade-offs: `@SpringBootTest` loads t
 
 **Isolate at the transaction boundary, not by manual cleanup.** `@Transactional` on a database test rolls back all changes after the test method returns, which eliminates test-ordering dependencies for free. Manual `@AfterEach` cleanup is a symptom that isolation was designed in after the fact.
 
-**Choose the cheapest mock strategy that gives you the isolation you need.** `@MockBean` replaces a bean inside a Spring context (`@WebMvcTest`, `@SpringBootTest`); `@Mock`/`@InjectMocks` needs no context at all for a pure unit test; a hand-written fake (an in-memory `Map`-backed implementation) is the right choice when a collaborator is stateful enough that stubbing every call obscures the test's intent. If a `when(...)` setup block is longer than the behavior it's testing, that's the signal mocking is fighting you — reach for a fake or `@SpringBootTest` with real beans instead of mocking five-plus dependencies.
+**Choose the cheapest mock strategy that gives you the isolation you need.** `@MockitoBean` replaces a bean inside a Spring context (`@WebMvcTest`, `@SpringBootTest`); `@Mock`/`@InjectMocks` needs no context at all for a pure unit test; a hand-written fake (an in-memory `Map`-backed implementation) is the right choice when a collaborator is stateful enough that stubbing every call obscures the test's intent. If a `when(...)` setup block is longer than the behavior it's testing, that's the signal mocking is fighting you — reach for a fake or `@SpringBootTest` with real beans instead of mocking five-plus dependencies. **Version note:** `@MockBean`/`@MockBeans` (the older `org.springframework.boot.test.mock.mockito` annotations) were deprecated in Spring Boot 3.4 and removed in Spring Boot 4.0 (GA November 2025) — `@MockitoBean`/`@MockitoSpyBean` (`org.springframework.test.context.bean.override.mockito`, Spring Framework 6.2+) are the current replacement and are not a strict drop-in (check the migration notes for a project still on the 3.4–3.5 line before assuming identical behavior).
 
 **Parameterized tests should match the source to the shape of the data.** `@ValueSource` for one primitive per case, `@CsvSource` for small literal tuples, `@MethodSource` for anything requiring constructed objects (`BigDecimal`, entities) — always paired with a descriptive `name = "..."` template so a failure is self-explanatory without opening the test file.
 
@@ -36,7 +36,7 @@ Spring Boot testing is a set of deliberate trade-offs: `@SpringBootTest` loads t
 | Testing business logic with no Spring wiring needed? | `@ExtendWith(MockitoExtension.class)`, `@Mock`/`@InjectMocks` | Fastest possible; no context startup at all |
 | Testing a repository query (need real SQL semantics)? | `@DataJpaTest` + `TestEntityManager` | Only way to catch a query bug — mocking the repository proves nothing about the query |
 | Testing a full request→DB→response flow, or a batch job? | `@SpringBootTest` (+ Testcontainers for a real DB) | Reserve for genuine integration/E2E; too slow for routine coverage |
-| Mocking a dependency that must participate in Spring DI? | `@MockBean` | Only mechanism that replaces a bean inside the context |
+| Mocking a dependency that must participate in Spring DI? | `@MockitoBean` (Spring Boot 4.0+; `@MockBean` if the project is still on Boot ≤3.5) | Only mechanism that replaces a bean inside the context |
 | Mocking a dependency with 5+ collaborators to stub? | Refactor the service, or use a fake / `@SpringBootTest` with real beans | Heavy mocking setups usually indicate a design smell, not a testing one |
 | Choosing a parameterized source? | `@ValueSource` (primitives) / `@CsvSource` (small tuples) / `@MethodSource` (constructed objects) | Match the source to the data's shape; `@MethodSource` + `name=` for anything non-trivial |
 | Asserting an async/eventual result? | Awaitility's `await().atMost(...).until(...)` | `Thread.sleep()` is slow and flaky; polling with a timeout is deterministic |
@@ -59,7 +59,7 @@ Spring Boot testing is a set of deliberate trade-offs: `@SpringBootTest` loads t
 @WebMvcTest(ProductController.class)
 class ProductControllerTest {
     @Autowired private MockMvc mockMvc;
-    @MockBean private ProductService productService;
+    @MockitoBean private ProductService productService;   // @MockBean on Spring Boot ≤3.5
 
     @Test
     void testGetProductById_ReturnsProductWithOkStatus() throws Exception {
@@ -209,7 +209,7 @@ class ArchitectureTest {
 - [ ] Arrange → Act → Assert, with blank-line separation, in every test
 - [ ] Test name follows `test{Scenario}_{Condition}_{Expectation}()` — no bare `test()`/vague names
 - [ ] Narrowest correct test slice used — `@WebMvcTest`/`@DataJpaTest`/plain Mockito before `@SpringBootTest`
-- [ ] `@MockBean` used only where a bean must participate in the Spring context; plain `@Mock` elsewhere
+- [ ] `@MockitoBean` (Boot 4.0+) or `@MockBean` (Boot ≤3.5 — check the project's actual Spring Boot generation first) used only where a bean must participate in the Spring context; plain `@Mock` elsewhere
 - [ ] Test data comes from factories/builders, never hardcoded inline construction
 - [ ] No `Thread.sleep()` — async assertions use Awaitility
 - [ ] AssertJ fluent assertions (`.isEqualTo()`, `.hasSize()`) over JUnit's `assertEquals`

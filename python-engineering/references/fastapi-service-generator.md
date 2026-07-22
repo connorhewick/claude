@@ -91,7 +91,11 @@ mechanics.
    repository class.
 7. **DI wiring**: add `Depends()`-based provider functions in `dependencies.py` — the single file
    that imports concrete implementations.
-8. **API layer**: add router endpoints that depend on the service via `Depends()` only.
+8. **API layer**: add router endpoints that depend on the service via `Depends()` only, and wire
+   an auth dependency (`Depends(get_current_user)` or the project's existing equivalent) on every
+   endpoint at the same time — never add it as an afterthought. If the project has no auth
+   dependency yet, or the endpoint is deliberately public, say so explicitly rather than silently
+   shipping an unauthenticated route.
 9. **Observability**: add `structlog` calls at service (info) and repository (debug) boundaries —
    see `structlog-instrumentation.md`.
 10. **Tests**: unit tests against an interface fake, integration tests through the real HTTP
@@ -153,7 +157,7 @@ class BaseRepository(IRepository[T], Generic[T]):
         self._session.add(entity)
         await self._session.flush()
         await self._session.refresh(entity)
-        log.info("repo.created", model=self.model_class.__name__, id=str(entity.id))
+        log.debug("repo.created", model=self.model_class.__name__, id=str(entity.id))
         return entity
 
 # repositories/payment_repository.py — CRUD inherited, only domain queries added
@@ -245,15 +249,30 @@ def get_payment_service(repo: IPaymentRepository = Depends(get_payment_repositor
 ### Interface fake for tests (no mocking library needed)
 
 ```python
-# tests/fakes/payment_repository.py
+# tests/fakes/payment_repository.py — implements every abstract method from IRepository AND
+# IPaymentRepository; a fake that skips any of them stays abstract and raises TypeError on
+# instantiation, not a runtime surprise you want to hit mid-test-suite.
 class FakePaymentRepository(IPaymentRepository):
     def __init__(self) -> None:
         self._store: dict[UUID, Payment] = {}
+
+    async def get_by_id(self, id: UUID) -> Payment:
+        payment = self._store.get(id)
+        if payment is None:
+            raise EntityNotFoundError(entity="Payment", id=id)
+        return payment
 
     async def create(self, entity: Payment) -> Payment:
         entity.id = uuid4()
         self._store[entity.id] = entity
         return entity
+
+    async def update(self, entity: Payment) -> Payment:
+        self._store[entity.id] = entity
+        return entity
+
+    async def delete(self, id: UUID) -> None:
+        self._store.pop(id, None)
 
     async def get_by_reference(self, reference: str) -> Payment:
         for p in self._store.values():
@@ -286,6 +305,8 @@ service = PaymentService(repository=FakePaymentRepository())
 - [ ] `BaseRepository[T]` supplies CRUD; domain repositories add only domain-specific methods
 - [ ] `dependencies.py` is the only file importing concrete repository/service implementations
 - [ ] Routes never import repositories directly — only services, via `Depends()`
+- [ ] Every new endpoint has an explicit auth dependency wired, or is explicitly noted as
+      intentionally public — never left unauthenticated by omission
 - [ ] Repositories raise domain exceptions only, never `HTTPException`
 - [ ] All models use `Mapped[]` typed columns (SQLAlchemy 2.x)
 - [ ] `structlog.get_logger(__name__)` present in every module that logs

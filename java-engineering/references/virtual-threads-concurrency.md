@@ -92,6 +92,8 @@ java -Djdk.tracePinnedThreads=short -Dspring.threads.virtual.enabled=true -jar a
 
 ### Per-resource lock with cache-aside (fine-grained, VT-safe)
 
+**Do not "clean up" the lock map with a `hasQueuedThreads()` check — it's a race, not an optimization.** Thread A can observe no queued waiters and proceed to remove its entry while thread B has *already* fetched that same lock via `computeIfAbsent` and is about to lock it; A then removes the entry out from under B, and a subsequent thread C creates a *new* `ReentrantLock` for the same key and runs concurrently with B — the exact mutual exclusion this pattern exists to provide is gone. Accept unbounded map growth (bounded by the number of distinct product IDs ever requested, which is a fixed, known set in most domains) as the simpler, correct trade-off; if the key space is unbounded, reach for a proven striped-lock implementation (e.g. Guava's `Striped.lock(n)`) instead of hand-rolling reference counting.
+
 ```java
 @Service
 public class ProductService {
@@ -110,8 +112,7 @@ public class ProductService {
             putInCache(id, new ProductCache(product));
             return product.toResponse();
         } finally {
-            lock.unlock();
-            if (!lock.hasQueuedThreads()) locksByProductId.remove(id);
+            lock.unlock();                              // entry intentionally stays in the map — see above
         }
     }
 }

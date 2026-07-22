@@ -24,7 +24,7 @@ Performance work in Java fails most often not from picking the wrong fix, but fr
 
 **Startup cost is a separate optimization axis from steady-state throughput.** A service tuned for peak request latency can still have a 3-second cold start that fails a serverless SLA. `@Lazy` beans, conditional bean loading, and (for the strictest cold-start budgets) GraalVM native image compilation trade dynamic flexibility for startup speed — treat this as its own measurement with its own target, not a side effect of runtime tuning.
 
-**GC pause time is tunable independently of heap size, up to a point.** G1 is the sane general-purpose default (~50ms target pause). ZGC targets sub-10ms pauses; since JDK 21 its generational mode is the default and, as of JDK 23, its only mode — it narrows the throughput gap with G1 while keeping pause times flat regardless of heap size. Shenandoah offers similar latency with a different trade-off in memory overhead. Full GC events are the signal to act — increase heap or fix a retention leak, not just tune flags.
+**GC pause time is tunable independently of heap size, up to a point.** G1 is the sane general-purpose default (~50ms target pause). ZGC targets sub-10ms pauses; generational mode arrived opt-in in JDK 21 (`-XX:+ZGenerational`, JEP 439), became the default in JDK 23 (JEP 474), and is the only mode as of JDK 24, when non-generational ZGC was removed (JEP 490) — it narrows the throughput gap with G1 while keeping pause times flat regardless of heap size. Shenandoah offers similar latency with a different trade-off in memory overhead. Full GC events are the signal to act — increase heap or fix a retention leak, not just tune flags.
 
 ## Decision Framework
 
