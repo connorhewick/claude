@@ -11,3 +11,6 @@
   `ADR4-postgres-over-dynamo` rather than `ADR4`. The description makes the reference
   self-explanatory when resuming a session's task later, without needing to re-open the ticket
   or document to recall what it covers.
+- Every generated doc file gets a Table of Contents after the title, with anchor links matching
+  each heading (lowercase, spaces → hyphens, punctuation stripped). Keep it current when
+  sections change.
