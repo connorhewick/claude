@@ -26,61 +26,57 @@ clobbered.
 
 ## Components
 
-| Name | Type | Installs to | What it does |
-|---|---|---|---|
-| [`write-prd`](write-prd) | skill | `~/.claude/skills/write-prd/` | Interviews you and writes a PRD at the start of a new project/feature |
-| [`write-adr`](write-adr) | skill | `~/.claude/skills/write-adr/` | Writes a lightweight ADR for a significant decision |
-| [`prepare-pr`](prepare-pr) | skill | `~/.claude/skills/prepare-pr/` | Drafts a PR title/body against its bundled template, pushes, opens the PR, then runs an automatic post-open review |
-| [`split-commits`](split-commits) | skill | `~/.claude/skills/split-commits/` | Splits a mixed working tree into atomic commits |
-| [`device-logs`](device-logs) | skill | `~/.claude/skills/device-logs/` | Captures console output from a wirelessly paired iOS device |
-| [`port-ios-to-web`](port-ios-to-web) | skill | `~/.claude/skills/port-ios-to-web/` | Ports an iOS app to an equivalent web app |
-| [`port-web-to-ios`](port-web-to-ios) | skill | `~/.claude/skills/port-web-to-ios/` | Ports a web app to an equivalent iOS app |
-| [`doc-sync`](doc-sync) | skill | `~/.claude/skills/doc-sync/` | Audits docs against code for drift; reports or fixes (bundles its own explorer/planner/doc-writer/reviewer role-prompts) |
-| [`session-handoff`](session-handoff) | skill | `~/.claude/skills/session-handoff/` | Writes a session handoff doc, plus a harness-feedback doc (`~/.claude/harness-feedback/`) on what to keep/change about the Claude Code setup itself |
-| [`component-review`](component-review) | skill | `~/.claude/skills/component-review/` | Audits this repo's own components against `CLAUDE.md`'s type-decision and authoring conventions |
-| [`ios-engineering`](ios-engineering) | skill | `~/.claude/skills/ios-engineering/` | Native iOS/Swift engineering: MVVM scaffolding, SwiftUI, Core Data, networking, concurrency, security, performance, testing (bundles 9 topic references) |
-| [`harness-portability`](harness-portability) | skill | `~/.claude/skills/harness-portability/` | Maps a component from another agent harness onto this repo's own type taxonomy and proposes/applies the port |
-| [`statusline`](statusline) | statusline | `~/.claude/statuslines/statusline.sh` | Folder, git branch, model, effort, context bar, tokens, cache %, cost, rate limit |
-| [`global-rules`](global-rules) | global-rules | `~/.claude/CLAUDE.md` | Personal cross-project defaults, loaded in every project on this machine |
-| [`git-rules`](git-rules) | rule | `~/.claude/rules/git-rules.md` | Personal git/version-control conventions: commits, branches, worktrees, PR hygiene |
-| [`swiftui-rules`](swiftui-rules) | rule | `~/.claude/rules/swiftui-rules.md` | SwiftUI `#Preview` conventions, scoped to `**/*.swift` so it's inert elsewhere |
-| [`documentation-rules`](documentation-rules) | rule | `~/.claude/rules/documentation-rules.md` | Personal documentation conventions: ADRs, ticket/doc naming |
+| Name | Type | Invocation | Installs to | What it does |
+|---|---|---|---|---|
+| [`write-prd`](write-prd) | skill | Auto-trigger or `/write-prd` | `~/.claude/skills/write-prd/` | Interviews you and writes a PRD at the start of a new project/feature |
+| [`write-adr`](write-adr) | skill | Auto-trigger or `/write-adr` | `~/.claude/skills/write-adr/` | Writes a lightweight ADR for a significant decision |
+| [`prepare-pr`](prepare-pr) | skill | `/prepare-pr` only | `~/.claude/skills/prepare-pr/` | Drafts a PR title/body against its bundled template, pushes, opens the PR, then runs an automatic post-open review |
+| [`split-commits`](split-commits) | skill | Auto-trigger or `/split-commits` | `~/.claude/skills/split-commits/` | Splits a mixed working tree into atomic commits |
+| [`device-logs`](device-logs) | skill | `/device-logs` only | `~/.claude/skills/device-logs/` | Captures console output from a wirelessly paired iOS device |
+| [`port-ios-to-web`](port-ios-to-web) | skill | Auto-trigger or `/port-ios-to-web` | `~/.claude/skills/port-ios-to-web/` | Ports an iOS app to an equivalent web app |
+| [`port-web-to-ios`](port-web-to-ios) | skill | Auto-trigger or `/port-web-to-ios` | `~/.claude/skills/port-web-to-ios/` | Ports a web app to an equivalent iOS app |
+| [`doc-sync`](doc-sync) | skill | `/doc-sync` only | `~/.claude/skills/doc-sync/` | Audits docs against code for drift; reports or fixes (bundles its own explorer/planner/doc-writer/reviewer role-prompts) |
+| [`session-handoff`](session-handoff) | skill | Auto-trigger or `/session-handoff` | `~/.claude/skills/session-handoff/` | Writes a session handoff doc, plus a harness-feedback doc (`~/.claude/harness-feedback/`) on what to keep/change about the Claude Code setup itself |
+| [`component-review`](component-review) | skill | Auto-trigger or `/component-review` | `~/.claude/skills/component-review/` | Audits this repo's own components against `CLAUDE.md`'s type-decision and authoring conventions |
+| [`ios-engineering`](ios-engineering) | skill | Auto-trigger or `/ios-engineering` | `~/.claude/skills/ios-engineering/` | Native iOS/Swift engineering: MVVM scaffolding, SwiftUI, Core Data, networking, concurrency, security, performance, testing (bundles 9 topic references) |
+| [`harness-portability`](harness-portability) | skill | Auto-trigger or `/harness-portability` | `~/.claude/skills/harness-portability/` | Maps a component from another agent harness onto this repo's own type taxonomy and proposes/applies the port |
+| [`statusline`](statusline) | statusline | `/statusline` to select, then persists | `~/.claude/statuslines/statusline.sh` | Folder, git branch, model, effort, context bar, tokens, cache %, cost, rate limit |
+| [`global-rules`](global-rules) | global-rules | Automatic, every session | `~/.claude/CLAUDE.md` | Personal cross-project defaults, loaded in every project on this machine |
+| [`git-rules`](git-rules) | rule | Automatic, every session | `~/.claude/rules/git-rules.md` | Personal git/version-control conventions: commits, branches, worktrees, PR hygiene |
+| [`swiftui-rules`](swiftui-rules) | rule | Automatic, when `**/*.swift` is touched | `~/.claude/rules/swiftui-rules.md` | SwiftUI `#Preview` conventions, scoped to `**/*.swift` so it's inert elsewhere |
+| [`documentation-rules`](documentation-rules) | rule | Automatic, every session | `~/.claude/rules/documentation-rules.md` | Personal documentation conventions: ADRs, ticket/doc naming |
 
 Two more component types are supported by `install.sh`/`uninstall.sh` but have no example yet:
 
-| Type | Source file | Installs to |
-|---|---|---|
-| slash command | `<name>/command.md` | `~/.claude/commands/<name>.md` |
-| hook | `<name>/hook.sh` + `<name>/hook.json` | `~/.claude/hooks/<name>.sh`, plus a merged entry under `~/.claude/settings.json`'s `.hooks.<event>` |
-| output style | `<name>/output-style.md` | `~/.claude/output-styles/<name>.md` |
+| Type | Invocation | Source file | Installs to |
+|---|---|---|---|
+| slash command | `/<name>` only | `<name>/command.md` | `~/.claude/commands/<name>.md` |
+| hook | Automatic, on its configured harness event | `<name>/hook.sh` + `<name>/hook.json` | `~/.claude/hooks/<name>.sh`, plus a merged entry under `~/.claude/settings.json`'s `.hooks.<event>` |
+| output style | `/<name>` to select, then persists | `<name>/output-style.md` | `~/.claude/output-styles/<name>.md` |
 
 ## Using components in a session
 
 Once installed to `~/.claude/` (or `$CLAUDE_CONFIG_DIR`), components activate the same way in
 any stock Claude Code session — no project-level `.claude/` setup, hooks, or extra config
-required. How you interact with each depends on its type:
+required. The component table's **Invocation** column is the source of truth for how to trigger
+any given one; in general, by what that column says:
 
-- **Rules** and **global-rules** need no invocation at all. A path-scoped rule
-  (`swiftui-rules`) enters context automatically the moment you touch a matching file;
-  `global-rules` (`~/.claude/CLAUDE.md`) loads unconditionally in every session. The harness
-  does this for you — there's nothing to type.
-- **Skills** trigger two ways: automatically, when your request's phrasing matches the skill's
-  `description` (the "Triggers for" list in its frontmatter), or explicitly with `/<name>`. Most
-  skills in this repo (`write-prd`, `write-adr`, `split-commits`, `ios-engineering`,
-  `session-handoff`, `port-ios-to-web`, `port-web-to-ios`, `component-review`,
-  `harness-portability`) are written to auto-trigger — describe what you want in plain language and the matching skill fires on its
-  own. A few are deliberately explicit-only (`disable-model-invocation: true`), because the
-  action is too consequential to fire without you naming it: `device-logs`, `doc-sync`,
-  `prepare-pr`.
-- **Statuslines** and **output styles** activate once selected (`/statusline`, `/output-style`)
-  and then persist for the session without further invocation.
-- **Agents** (the `agent.md` extension point — no example component ships in this repo yet)
-  are never run directly by you. Claude spawns them via its own `Agent`/`Task` tool when a
-  request matches their description, the same way built-in agents like `Explore` are spawned.
-- **Slash commands** and **hooks** (also no example yet) are explicit- and event-driven
-  respectively: a command only runs when you type `/<name>`; a hook only runs when its
-  configured harness event fires (tool use, session stop, …) — neither responds to natural
-  language.
+- **Automatic, every session** / **Automatic, when `<path>` is touched** — rules and
+  global-rules. Nothing to type; the harness loads them for you.
+- **Auto-trigger or `/<name>`** — most skills. Describe what you want in plain language (the
+  "Triggers for" phrases in the skill's `description`) and the matching skill fires on its own,
+  or invoke it directly.
+- **`/<name>` only** — skills deliberately gated behind explicit invocation
+  (`disable-model-invocation: true`) because the action is too consequential to fire without you
+  naming it, and slash commands (no auto-trigger by design).
+- **`/<name>` to select, then persists** — statuslines and output styles: pick once, active for
+  the rest of the session without further invocation.
+- **Spawned by Claude, never invoked directly** — agents (the `agent.md` extension point — no
+  example component ships in this repo yet). Claude dispatches them via its own `Agent`/`Task`
+  tool when a request matches their description, the same way built-in agents like `Explore` are
+  spawned.
+- **Automatic, on its configured harness event** — hooks (also no example yet); fire only when
+  their event occurs (tool use, session stop, …), never from natural language.
 
 Prefer the auto-triggering path where it exists: phrase requests the way a skill's
 `description` expects (e.g. "write a PRD for X" for `write-prd`, "these are two different
@@ -95,7 +91,8 @@ the skill body, is what decides whether it activates.
    `hook.sh` + `hook.json`, `output-style.md`, or `statusline.sh`). That file is the
    component's documentation as well as its implementation — capture any non-obvious "why"
    (design trade-offs, what it was split out of) in its own section rather than a separate doc.
-2. Add a row to the component table above.
+2. Add a row to the component table above, including its **Invocation** cell (see "Using
+   components in a session" above for the vocabulary to use).
 3. Touch four things across `install.sh` / `uninstall.sh` (plus `components.sh`, shared by
    both):
    - `ALL_COMPONENTS` in `components.sh`
