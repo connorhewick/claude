@@ -30,7 +30,7 @@ clobbered.
 |---|---|---|---|
 | [`write-prd`](write-prd) | skill | `~/.claude/skills/write-prd/` | Interviews you and writes a PRD at the start of a new project/feature |
 | [`write-adr`](write-adr) | skill | `~/.claude/skills/write-adr/` | Writes a lightweight ADR for a significant decision |
-| [`prepare-pr`](prepare-pr) | skill | `~/.claude/skills/prepare-pr/` | Reviews the diff and drafts a PR title/body |
+| [`prepare-pr`](prepare-pr) | skill | `~/.claude/skills/prepare-pr/` | Drafts a PR title/body against its bundled template, pushes, opens the PR, then runs an automatic post-open review |
 | [`split-commits`](split-commits) | skill | `~/.claude/skills/split-commits/` | Splits a mixed working tree into atomic commits |
 | [`device-logs`](device-logs) | skill | `~/.claude/skills/device-logs/` | Captures console output from a wirelessly paired iOS device |
 | [`port-ios-to-web`](port-ios-to-web) | skill | `~/.claude/skills/port-ios-to-web/` | Ports an iOS app to an equivalent web app |
