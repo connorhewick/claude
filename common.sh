@@ -11,13 +11,14 @@ SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 
 # Back up a file/dir before it's overwritten or removed, if it pre-exists and
-# isn't already what we'd install (idempotent no-op when unchanged). Backs up
-# to a `.bak.<timestamp>` sibling of $target by default; pass $2 to redirect
-# the backup elsewhere instead. Directory-based components must pass $2 to
-# somewhere outside the directory the harness scans for that component
-# type — a sibling backup directory (e.g. skills/foo.bak.<timestamp>/) is
-# itself a valid component directory and would be discovered as a second,
-# live copy, not inert the way a mismatched-extension file backup is.
+# isn't already what we'd install (idempotent no-op when unchanged). Every
+# caller passes $2 pointing under $CLAUDE_DIR/.component-backups/ — a
+# sibling backup file/dir left inside a scanned type directory (e.g.
+# skills/foo.bak.<timestamp>/, rules/foo.md.bak.<timestamp>) is itself
+# discoverable by the harness and would load into session context or be
+# picked up as a second, live component. $2 is optional only so a future
+# one-off caller isn't forced to invent a path; the `.bak.<timestamp>`
+# sibling fallback below is not otherwise used by any installer in this repo.
 backup_if_exists() {
   local target="$1"
   [[ -e "$target" ]] || return 0
@@ -65,7 +66,7 @@ install_agent() {
     return 0
   fi
   mkdir -p "$CLAUDE_DIR/agents"
-  backup_if_exists "$dest"
+  backup_if_exists "$dest" "$CLAUDE_DIR/.component-backups/agents/$name.md.bak.$(date +%Y%m%d%H%M%S)"
   cp "$SRC/$name/agent.md" "$dest"
   echo "installed agent: $name -> $dest"
 }
@@ -85,7 +86,7 @@ install_rule() {
     return 0
   fi
   mkdir -p "$CLAUDE_DIR/rules"
-  backup_if_exists "$dest"
+  backup_if_exists "$dest" "$CLAUDE_DIR/.component-backups/rules/$name.md.bak.$(date +%Y%m%d%H%M%S)"
   cp "$SRC/$name/rule.md" "$dest"
   echo "installed rule: $name -> $dest"
 }
@@ -107,7 +108,7 @@ install_output_style() {
     return 0
   fi
   mkdir -p "$CLAUDE_DIR/output-styles"
-  backup_if_exists "$dest"
+  backup_if_exists "$dest" "$CLAUDE_DIR/.component-backups/output-styles/$name.md.bak.$(date +%Y%m%d%H%M%S)"
   cp "$SRC/$name/output-style.md" "$dest"
   echo "installed output style: $name -> $dest"
 }
@@ -131,7 +132,7 @@ install_command_file() {
     return 0
   fi
   mkdir -p "$CLAUDE_DIR/commands"
-  backup_if_exists "$dest"
+  backup_if_exists "$dest" "$CLAUDE_DIR/.component-backups/commands/$name.md.bak.$(date +%Y%m%d%H%M%S)"
   cp "$SRC/$name/command.md" "$dest"
   echo "installed command: $name -> $dest"
 }
@@ -162,7 +163,7 @@ install_hook() {
     echo "hook $name script is already up to date."
   else
     mkdir -p "$CLAUDE_DIR/hooks"
-    backup_if_exists "$dest"
+    backup_if_exists "$dest" "$CLAUDE_DIR/.component-backups/hooks/$name.sh.bak.$(date +%Y%m%d%H%M%S)"
     cp "$SRC/$name/hook.sh" "$dest"
     chmod +x "$dest"
     echo "installed hook script: $name -> $dest"
@@ -244,7 +245,7 @@ install_statusline_file() {
   if [[ -f "$dest" ]] && cmp -s "$SRC/$name/statusline.sh" "$dest"; then
     echo "statusline $name is already up to date — nothing to do."
   else
-    backup_if_exists "$dest"
+    backup_if_exists "$dest" "$CLAUDE_DIR/.component-backups/statuslines/$name.sh.bak.$(date +%Y%m%d%H%M%S)"
     cp "$SRC/$name/statusline.sh" "$dest"
     chmod +x "$dest"
     echo "installed statusline: $name -> $dest"
@@ -271,7 +272,7 @@ install_claude_md_file() {
     return 0
   fi
   mkdir -p "$CLAUDE_DIR"
-  backup_if_exists "$dest"
+  backup_if_exists "$dest" "$CLAUDE_DIR/.component-backups/CLAUDE.md.bak.$(date +%Y%m%d%H%M%S)"
   cp "$SRC/$name/CLAUDE.md" "$dest"
   echo "installed $name -> $dest"
 }
