@@ -58,3 +58,28 @@ restructuring), a partial match requiring a stricter filter (prompt → slash-co
 qualify), and a genuine gap (instructions → nothing in this taxonomy). Expect all three when
 scanning a new source harness — don't assume every component in a source catalog has a home
 here.
+
+## Export example (this repo → dotcopilot)
+
+The false-cognate risk runs both ways. Consider exporting this repo's own `doc-sync` — a
+`disable-model-invocation: true` skill that orchestrates four bundled role-prompts
+(`explorer-agent.md`, `planner-agent.md`, `doc-writer-agent.md`, `reviewer-agent.md`) in sequence
+via the `Task` tool:
+
+- **Frontmatter**: strip `disable-model-invocation`, `allowed-tools`, and `argument-hint` —
+  Claude-Code-specific fields dotcopilot's own frontmatter has no equivalent for (per the
+  lowest-common-denominator note above).
+- **Type mapping, reversed**: `doc-sync` behaves like a fixed-sequence orchestrator dispatching
+  through several sub-roles — exactly the shape the import catalog above identified as
+  dotcopilot's own notion of "agent" (`ios-engineer.agent.md`), not dotcopilot's "skill". A naive
+  export that keeps calling it a "skill" because that's what it's named here would carry the same
+  false-cognate risk the import direction already ran into, just mirrored.
+- **Bundling**: dotcopilot's `agents/*.agent.md` convention is a single file, not a directory with
+  companion files — so the four role-prompts likely need folding into the one `.agent.md`'s own
+  body (or dotcopilot's own equivalent of a routing table) rather than staying as separate bundled
+  files, since that target harness may not support the same directory-of-companion-files pattern
+  this repo's `references/*.md` convention relies on.
+
+This is illustrative, not a confirmed dotcopilot spec — always verify the target harness's actual
+bundling and frontmatter conventions in step 1 rather than assuming this example's specifics
+transfer to a real export.
