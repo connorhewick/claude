@@ -57,7 +57,12 @@ across the selected set:
   gating another's scope)? Order dependent issues accordingly.
 - **Parallelizable groups** — which issues are independent enough to hand to separate sessions/
   subagents at once, per this repo's own fan-out guidance in `~/.claude/CLAUDE.md` (worth it only
-  for genuinely independent work, not routine per-task delegation).
+  for genuinely independent work, not routine per-task delegation). Assign each item in a
+  parallelizable group its own git worktree (a descriptive path and branch name, e.g.
+  `../<repo>-issue-<n>/` on `feat/<slug>`) per `git-rules`' worktree-per-feature convention — this
+  is what lets separate terminal sessions work each issue at once without interfering with each
+  other or with the session running this plan. Sequential (non-parallel) issues don't need this;
+  one worktree at a time is enough for those.
 - **Priority** — if issues carry an explicit priority (as this repo's own issues do, in a
   "**Priority: PN**" line), let it inform ordering within a dependency tier, not override one.
 
@@ -74,7 +79,8 @@ Source issues: #<n>, #<n>, ...
 
 ## Execution order
 
-1. #<n> — <one-line scope> (blocks: #<n>; parallelizable with: #<n>)
+1. #<n> — <one-line scope> (blocks: #<n>; parallelizable with: #<n>; worktree: `<path>` on
+   `<branch>` — omit the worktree note for sequential issues)
 2. ...
 
 ## Per-issue detail

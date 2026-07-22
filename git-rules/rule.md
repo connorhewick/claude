@@ -10,10 +10,18 @@
   change, branch immediately, even before exploring or editing; don't let edits accumulate on
   `main`'s working tree first and branch only when a commit tool's precondition check catches
   it. A dirty default-branch working tree blocks any other session sharing that checkout from
-  cleanly branching off `main` for its own task in the meantime. When more than one feature is
-  active at once, give each its own git worktree (`EnterWorktree`/`ExitWorktree`) instead of
-  stashing or switching branches in a single working tree, so uncommitted work on one feature
-  never blocks or bleeds into another.
+  cleanly branching off `main` for its own task in the meantime.
+- Before the first edit in any new session, check `git status`/`git branch --show-current`. If
+  the working tree already has uncommitted changes or sits on a branch unrelated to the task at
+  hand, treat that as another session's in-progress work, not something safe to build on top of,
+  stash, or switch away from — start the new task in its own git worktree
+  (`EnterWorktree`/`ExitWorktree`) instead of editing the shared checkout. Do this even if this
+  is the session's very first action: a fresh session has no memory of what else may already be
+  running against the same checkout, so opening a new terminal tab and starting a new task must
+  never risk interfering with work already in progress there.
+- When more than one feature is active at once (from this session or another), give each its own
+  git worktree instead of stashing or switching branches in a single working tree, so uncommitted
+  work on one feature never blocks or bleeds into another.
 - Never push to a repo's default branch. Branch first, then open a pull request.
 - Every pull request body must follow the project's PR template.
 - Keep an open PR's title and description accurate as its branch evolves. After pushing new
