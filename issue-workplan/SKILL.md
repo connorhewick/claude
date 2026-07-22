@@ -1,19 +1,21 @@
 ---
 name: issue-workplan
 description: >
-  Turn a group of GitHub issues into a self-contained workplan document for a fresh or
+  Turn one or more GitHub issues into a self-contained workplan document for a fresh or
   autonomous session to implement later — resolving every ambiguity now, since the session that
-  executes the plan has nobody to ask. Triggers for: "plan out these issues", "make a workplan
-  for #X #Y", "prep an autonomous session for this label/milestone", "sequence these issues into
-  a plan", "turn this backlog into a workplan". Do NOT trigger for planning a single issue you're
-  about to implement yourself right now (that's ordinary spec-first planning, no doc needed), for
-  an end-of-session retrospective (that's `session-handoff`), or for a PRD/ADR covering one
-  decision or feature (that's `write-prd`/`write-adr`).
+  executes the plan has nobody to ask. Works the same for a single issue as for a batch; only
+  the execution-order step becomes trivial. Triggers for: "plan out these issues", "make a
+  workplan for #X #Y", "write a workplan for issue #N for later", "prep an autonomous session for
+  this label/milestone/issue", "sequence these issues into a plan", "turn this backlog into a
+  workplan". Do NOT trigger when you're about to implement the issue yourself right now in this
+  session, regardless of issue count (that's ordinary spec-first planning, no doc needed), for an
+  end-of-session retrospective (that's `session-handoff`), or for a PRD/ADR covering one decision
+  or feature (that's `write-prd`/`write-adr`).
 argument-hint: >
   [issue numbers/URLs | label | milestone | "all"]
 ---
 
-Produce `docs/workplans/NNNN-slug.md` — a workplan covering a *group* of GitHub issues, written
+Produce `docs/workplans/NNNN-slug.md` — a workplan covering one or more GitHub issues, written
 so a session with no memory of this conversation (a fresh session, or an unattended autonomous
 one) can execute it without needing to ask anyone anything. That last part is the operating
 constraint for every step below: this skill's own session can interview the user right now: the
@@ -48,7 +50,9 @@ issue out of the written doc until it's resolved.
 
 ## 4 — Sequence the issues
 
-Determine, across the selected set:
+If only one issue was selected, this step is trivial — a single-entry execution order, no
+dependency or parallelization analysis needed — skip straight to step 5. Otherwise, determine
+across the selected set:
 - **Dependencies** — does one issue's output feed another (shared files, one issue's decision
   gating another's scope)? Order dependent issues accordingly.
 - **Parallelizable groups** — which issues are independent enough to hand to separate sessions/
