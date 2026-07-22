@@ -21,6 +21,7 @@ ALL_COMPONENTS=(
   component-review
   ios-engineering
   harness-portability
+  issue-workplan
   statusline
   global-rules
   git-rules
@@ -33,7 +34,7 @@ is_known_component() {
     write-prd|write-adr|prepare-pr|split-commits| \
     device-logs|port-ios-to-web|port-web-to-ios|doc-sync| \
     session-handoff|component-review|ios-engineering|harness-portability| \
-    statusline|global-rules|git-rules|swiftui-rules|documentation-rules)
+    issue-workplan|statusline|global-rules|git-rules|swiftui-rules|documentation-rules)
       return 0 ;;
     *)
       return 1 ;;

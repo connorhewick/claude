@@ -40,6 +40,7 @@ clobbered.
 | [`component-review`](component-review) | skill | Auto-trigger or `/component-review` | `~/.claude/skills/component-review/` | Audits this repo's own components against `CLAUDE.md`'s type-decision and authoring conventions |
 | [`ios-engineering`](ios-engineering) | skill | Auto-trigger or `/ios-engineering` | `~/.claude/skills/ios-engineering/` | Native iOS/Swift engineering: MVVM scaffolding, SwiftUI, Core Data, networking, concurrency, security, performance, testing (bundles 9 topic references) |
 | [`harness-portability`](harness-portability) | skill | Auto-trigger or `/harness-portability` | `~/.claude/skills/harness-portability/` | Maps a component from another agent harness onto this repo's own type taxonomy and proposes/applies the port |
+| [`issue-workplan`](issue-workplan) | skill | Auto-trigger or `/issue-workplan` | `~/.claude/skills/issue-workplan/` | Turns a group of GitHub issues into a self-contained workplan doc for a fresh/autonomous session to implement later |
 | [`statusline`](statusline) | statusline | `/statusline` to select, then persists | `~/.claude/statuslines/statusline.sh` | Folder, git branch, model, effort, context bar, tokens, cache %, cost, rate limit |
 | [`global-rules`](global-rules) | global-rules | Automatic, every session | `~/.claude/CLAUDE.md` | Personal cross-project defaults, loaded in every project on this machine |
 | [`git-rules`](git-rules) | rule | Automatic, every session | `~/.claude/rules/git-rules.md` | Personal git/version-control conventions: commits, branches, worktrees, PR hygiene |
