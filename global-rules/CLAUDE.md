@@ -55,6 +55,8 @@ file it can't back up.
   3. **Incorporate** — apply the human's answers before converging the change or opening the PR.
 
   Skip it only for trivial changes (typos, one-line fixes) where there is nothing to decide.
+- Justify any new dependency before adding it: state the alternatives considered (including the
+  standard library/existing project dependencies) and why this one wins.
 - In any given project, follow that project's own stated conventions
   (`AGENTS.md`/`CLAUDE.md`/`.claude/rules/*.md`) over these defaults.
 
