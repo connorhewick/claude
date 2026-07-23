@@ -61,9 +61,9 @@ file it can't back up.
   duplicates what the CLI already provides — check whether a built-in capability covers the need
   before improvising one. Your knowledge of the CLI's feature set can lag the installed version;
   when a capability question actually matters to the task (a workaround feels necessary, or the
-  user asks what Claude Code can do), verify against the current release notes (WebFetch
-  `docs.claude.com/en/release-notes/claude-code`) rather than relying solely on training-data
-  recall.
+  user asks what Claude Code can do), verify against the current changelog (WebFetch
+  `raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md`) rather than relying
+  solely on training-data recall.
 - In any given project, follow that project's own stated conventions
   (`AGENTS.md`/`CLAUDE.md`/`.claude/rules/*.md`) over these defaults.
 
