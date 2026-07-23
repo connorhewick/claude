@@ -21,13 +21,13 @@ For an iOS client, that maps as: **section 3 (API Contract)** is the contract th
 signatures for it. **Section 4 (Data Model)** maps to local persistence when this feature caches
 or stores data on-device — this appendix's Persistence Layer subsection shows the `@Model`
 declarations for it. **Section 5 (Service & UI Design)** is where the screen/navigation/state
-design itself lives for an iOS target — this appendix's App Layer subsection translates that
-directly into view/view-model/navigation signatures. If the feature has no backend (purely
-on-device), section 3 will already say "N/A"; if it has no local persistence, section 4 will —
-skip the corresponding subsection below entirely rather than inventing one. Section 5, and
-therefore the App Layer subsection, applies to essentially every iOS feature this appendix is
-loaded for — it's the *only* section with real content for a pure-UI feature (a new screen, a
-navigation change) that has no API or data-model surface at all.
+design itself lives for an iOS target — this appendix's Views & UI and View Model & Navigation
+subsections translate that directly into concrete signatures. If the feature has no backend
+(purely on-device), section 3 will already say "N/A"; if it has no local persistence, section 4
+will — skip the corresponding subsection below entirely rather than inventing one. Section 5,
+and therefore the Views & UI / View Model & Navigation subsections, apply to essentially every
+iOS feature this appendix is loaded for — they're the *only* subsections with real content for a
+pure-UI feature (a new screen, a navigation change) that has no API or data-model surface at all.
 
 ## 1. Networking layer (consuming section 3's API Contract)
 
@@ -81,20 +81,45 @@ navigation change) that has no API or data-model surface at all.
 - **Migration note** — if this feature changes an existing `@Model`'s shape rather than adding a
   new one, name the `VersionedSchema` step this would require; "N/A" for a purely additive model.
 
-## 3. App layer (translating section 5's screen/navigation/state design)
+## 3. Views & UI (translating section 5's screen design)
 
 This is the primary subsection to fill in for a UI-only feature — don't skip it just because
 Networking/Persistence above were both "N/A".
 
-- **View signatures** — one SwiftUI `View` conformance stub per new/changed screen section 5
-  names, `body`'s type left as `some View` with no implementation:
+- **View signatures**, one SwiftUI `View` conformance stub per new/changed screen section 5
+  names, `body`'s type left as `some View` with no implementation. Break a screen into its real
+  composition — a container view plus the child views it assembles — rather than one monolithic
+  `body`, matching how section 5 actually described the screen:
 
   ```swift
   struct OrderDetailView: View {
       let viewModel: OrderDetailViewModel
       var body: some View { ... }
   }
+
+  private struct OrderSummaryRow: View {
+      let order: Order
+      var body: some View { ... }
+  }
   ```
+
+- **State ownership annotations** — for every stored property a view needs, the property
+  wrapper that expresses who owns it (`@State` for view-local state, `@Binding` for state a
+  parent owns, `@Environment` for injected dependencies), per `swiftui-patterns.md`'s "state has
+  exactly one owner" rule. Signature only — declare the property and its wrapper, not the value.
+- **Custom `ViewModifier` signature** — only if section 5 or the feature's NFRs describe a
+  reusable visual/behavioral treatment applied across multiple views; skip if every view's
+  styling is one-off.
+- **Accessibility annotations** — if section 6 (NFRs) names an accessibility requirement, the
+  specific modifier(s) it implies (`.accessibilityLabel`, `.accessibilityHint`,
+  `.accessibilityElement(children:)`) on the relevant view signature — not a blanket "add
+  accessibility" note.
+- **`#Preview` requirement** — a reminder, not a signature: this repo's own `swiftui-rules`
+  convention (if installed in the target project) requires every SwiftUI `View` to ship with a
+  working `#Preview` — flag this as an implementation-time requirement (in the Implementation
+  Kickoff appendix, if included) rather than writing the preview here.
+
+## 4. View model & navigation (translating section 5's state/flow design)
 
 - **Navigation signature** — one signature per navigation transition section 5's flow names,
   expressed however this codebase's navigation already works (a `NavigationPath` push, a
@@ -126,8 +151,10 @@ Networking/Persistence above were both "N/A".
 | Networking layer | Section 3 (API Contract) is "N/A" — feature is purely on-device |
 | Persistence layer | Section 4 (Data Model) is "N/A", or the feature only reads data an existing model already covers |
 | Migration note | New `@Model` is purely additive, no shape change to an existing one |
+| Custom `ViewModifier` | No reusable visual/behavioral treatment is shared across more than one view |
+| Accessibility annotations | Section 6 (NFRs) names no accessibility requirement |
 | Navigation signature | Feature adds no new screen and changes no navigation flow (e.g. a pure business-logic or data change with an already-existing UI) |
-| App layer entirely | Feature is backend-only with no iOS client surface at all — rare; usually means this appendix shouldn't have been loaded |
+| Views & UI / View model & navigation entirely | Feature is backend-only with no iOS client surface at all — rare; usually means this appendix shouldn't have been loaded |
 
 ## Quality checklist
 
@@ -138,9 +165,13 @@ Networking/Persistence above were both "N/A".
 - [ ] Every relationship's delete rule is stated explicitly, never left implicit
 - [ ] Error handling note assigns each API error to one of the three failure families, not a
       generic catch-all
-- [ ] Every screen/navigation transition/state property in the App layer traces back to
-      something section 5 actually names — no invented screens
-- [ ] For a UI-only feature (sections 3–4 both "N/A"), the App layer subsection alone is
-      thorough enough to hand off to implementation — not left thin just because the other two
-      subsections were skipped
+- [ ] Every screen is broken into its real container/child composition, not left as one
+      monolithic view signature
+- [ ] Every stored property's ownership wrapper (`@State`/`@Binding`/`@Environment`) is stated
+      explicitly, not left implicit
+- [ ] Every screen/navigation transition/state property traces back to something section 5
+      actually names — no invented screens
+- [ ] For a UI-only feature (sections 3–4 both "N/A"), Views & UI and View model & navigation
+      alone are thorough enough to hand off to implementation — not left thin just because the
+      other two subsections were skipped
 - [ ] No method bodies — every signature is a stub, nothing is actually implemented
