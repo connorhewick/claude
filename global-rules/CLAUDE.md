@@ -57,6 +57,13 @@ file it can't back up.
   Skip it only for trivial changes (typos, one-line fixes) where there is nothing to decide.
 - Justify any new dependency before adding it: state the alternatives considered (including the
   standard library/existing project dependencies) and why this one wins.
+- Prefer Claude Code's own native, built-in mechanisms over a hand-rolled workaround that
+  duplicates what the CLI already provides — check whether a built-in capability covers the need
+  before improvising one. Your knowledge of the CLI's feature set can lag the installed version;
+  when a capability question actually matters to the task (a workaround feels necessary, or the
+  user asks what Claude Code can do), verify against the current release notes (WebFetch
+  `docs.claude.com/en/release-notes/claude-code`) rather than relying solely on training-data
+  recall.
 - In any given project, follow that project's own stated conventions
   (`AGENTS.md`/`CLAUDE.md`/`.claude/rules/*.md`) over these defaults.
 
