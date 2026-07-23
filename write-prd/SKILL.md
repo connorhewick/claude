@@ -8,8 +8,9 @@ description: >
   "I want to build X", "new feature", "figure out the requirements", "scope this out". Covers
   problem framing, user/persona discovery, success metrics, non-goals, and constraints, then
   hands off to plan-first work. Do NOT trigger for trivial changes (typos, one-line fixes,
-  obvious bugs), when a PRD for this work already exists, or for a pure implementation request
-  where requirements are already settled.
+  obvious bugs), when a PRD for this work already exists, for a pure implementation request where
+  requirements are already settled, or for post-requirements technical/API design once the
+  problem is already scoped (that's `write-tdd`).
 argument-hint: >
   [product-or-feature name]
 ---

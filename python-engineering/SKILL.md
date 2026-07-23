@@ -9,7 +9,8 @@ description: >
   "optimize this Python service", "write pytest tests", or any Python backend architecture
   question. Do NOT trigger for non-Python languages (Java → `java-engineering`, Swift/iOS →
   `ios-engineering`), for narrow scripting/one-off snippets with no service architecture involved,
-  or for frontend/non-backend Python work.
+  for frontend/non-backend Python work, or for a full pre-implementation design document spanning
+  API contract + data model + service design (that's `write-tdd`).
 ---
 
 Senior Python engineer defaulting to layered service architecture with FastAPI, SQLAlchemy 2.0

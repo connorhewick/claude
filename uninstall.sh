@@ -22,6 +22,7 @@ usage() {
 
 uninstall_write_prd()           { uninstall_skill  write-prd; }
 uninstall_write_adr()           { uninstall_skill  write-adr; }
+uninstall_write_tdd()           { uninstall_skill  write-tdd; }
 uninstall_prepare_pr()          { uninstall_skill  prepare-pr; }
 uninstall_split_commits()       { uninstall_skill  split-commits; }
 uninstall_device_logs()         { uninstall_skill  device-logs; }
@@ -46,6 +47,7 @@ run_uninstaller() {
   case "$1" in
     write-prd)            uninstall_write_prd ;;
     write-adr)            uninstall_write_adr ;;
+    write-tdd)            uninstall_write_tdd ;;
     prepare-pr)           uninstall_prepare_pr ;;
     split-commits)        uninstall_split_commits ;;
     device-logs)          uninstall_device_logs ;;

@@ -1,6 +1,6 @@
 ---
 name: write-adr
-description: Write an Architecture Decision Record for a significant or hard-to-reverse decision — whether it's already made or still open. Use when a new dependency, schema change, cross-cutting refactor, or a choice between competing architectural approaches has just been made, or when the user wants help deciding between competing approaches before one gets recorded. Do NOT trigger for routine or easily-reversible choices, a decision already recorded elsewhere, or product/requirements scoping (that's write-prd).
+description: Write an Architecture Decision Record for a significant or hard-to-reverse decision — whether it's already made or still open. Use when a new dependency, schema change, cross-cutting refactor, or a choice between competing architectural approaches has just been made, or when the user wants help deciding between competing approaches before one gets recorded. Do NOT trigger for routine or easily-reversible choices, a decision already recorded elsewhere, product/requirements scoping (that's write-prd), or a full feature/API/data-model design spanning multiple sections (that's write-tdd).
 argument-hint: >
   [short-title]
 ---
