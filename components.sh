@@ -32,6 +32,15 @@ ALL_COMPONENTS=(
   documentation-rules
 )
 
+# Every rule-type component, in the shared rules/ directory. `install.sh rules`
+# / `uninstall.sh rules` expand to exactly this list — update it when adding a
+# new rule component, alongside its entry in ALL_COMPONENTS above.
+RULE_COMPONENTS=(
+  git-rules
+  swiftui-rules
+  documentation-rules
+)
+
 is_known_component() {
   case "$1" in
     write-prd|write-adr|prepare-pr|split-commits| \

@@ -15,8 +15,10 @@ installs globally, across every project on your machine.
 
 ```
 ./install.sh all                  # install every component
+./install.sh rules                # install every rule-type component (git-rules, swiftui-rules, documentation-rules)
 ./install.sh write-prd write-adr  # install just the named ones
 ./uninstall.sh write-prd         # remove just that one
+./uninstall.sh rules              # remove every rule-type component
 ./uninstall.sh all               # remove everything this repo installed
 ```
 
