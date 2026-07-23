@@ -31,6 +31,8 @@ install_doc_sync()            { install_skill  doc-sync; }
 install_session_handoff()     { install_skill  session-handoff; }
 install_component_review()    { install_skill  component-review; }
 install_ios_engineering()     { install_skill  ios-engineering; }
+install_python_engineering()  { install_skill  python-engineering; }
+install_java_engineering()    { install_skill  java-engineering; }
 install_harness_portability() { install_skill  harness-portability; }
 install_issue_workplan()      { install_skill  issue-workplan; }
 install_harness_scaffold()    { install_skill  harness-scaffold; }
@@ -53,6 +55,8 @@ run_installer() {
     session-handoff)      install_session_handoff ;;
     component-review)     install_component_review ;;
     ios-engineering)      install_ios_engineering ;;
+    python-engineering)   install_python_engineering ;;
+    java-engineering)     install_java_engineering ;;
     harness-portability)  install_harness_portability ;;
     issue-workplan)       install_issue_workplan ;;
     harness-scaffold)     install_harness_scaffold ;;
