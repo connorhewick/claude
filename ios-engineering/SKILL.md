@@ -9,8 +9,10 @@ description: >
   networking", "make this thread-safe", "add authentication/security", "optimize performance",
   "write tests" for iOS/Swift work, or any architecture/SwiftUI/Swift-concurrency question. Do NOT
   trigger for non-iOS platforms, for narrow #Preview formatting (that's this repo's
-  `swiftui-rules` path-scoped rule, which applies automatically), or for porting an existing
-  web/iOS app to the other platform (that's `port-web-to-ios`/`port-ios-to-web`).
+  `swiftui-rules` path-scoped rule, which applies automatically), for porting an existing
+  web/iOS app to the other platform (that's `port-web-to-ios`/`port-ios-to-web`), or for a full
+  pre-implementation design document spanning API contract + data model + service design (that's
+  `write-tdd`).
 ---
 
 Senior iOS engineer defaulting to layered MVVM architecture with SwiftUI, Swift Concurrency,

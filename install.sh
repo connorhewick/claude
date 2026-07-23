@@ -23,6 +23,7 @@ usage() {
 # style/statusline).
 install_write_prd()           { install_skill  write-prd; }
 install_write_adr()           { install_skill  write-adr; }
+install_write_tdd()           { install_skill  write-tdd; }
 install_prepare_pr()          { install_skill  prepare-pr; }
 install_split_commits()       { install_skill  split-commits; }
 install_device_logs()         { install_skill  device-logs; }
@@ -47,6 +48,7 @@ run_installer() {
   case "$1" in
     write-prd)            install_write_prd ;;
     write-adr)            install_write_adr ;;
+    write-tdd)            install_write_tdd ;;
     prepare-pr)           install_prepare_pr ;;
     split-commits)        install_split_commits ;;
     device-logs)          install_device_logs ;;

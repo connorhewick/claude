@@ -33,6 +33,7 @@ never mistaken for a live component or auto-loaded into a session.
 |---|---|---|---|---|
 | [`write-prd`](write-prd) | skill | Auto-trigger or `/write-prd` | `~/.claude/skills/write-prd/` | Interviews you and writes a PRD at the start of a new project/feature |
 | [`write-adr`](write-adr) | skill | Auto-trigger or `/write-adr` | `~/.claude/skills/write-adr/` | Writes a lightweight ADR for a significant decision |
+| [`write-tdd`](write-tdd) | skill | Auto-trigger or `/write-tdd` | `~/.claude/skills/write-tdd/` | Writes a Technical Design Document (API contract, data model, service design) for a feature, with optional Python/Java implementation-notes appendices |
 | [`prepare-pr`](prepare-pr) | skill | `/prepare-pr` only | `~/.claude/skills/prepare-pr/` | Drafts a PR title/body against its bundled template, pushes, opens the PR, then runs an automatic post-open review |
 | [`split-commits`](split-commits) | skill | Auto-trigger or `/split-commits` | `~/.claude/skills/split-commits/` | Splits a mixed working tree into atomic commits |
 | [`device-logs`](device-logs) | skill | `/device-logs` only | `~/.claude/skills/device-logs/` | Captures console output from a wirelessly paired iOS device |

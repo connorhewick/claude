@@ -9,7 +9,9 @@ description: >
   logging"/"configure Logback", "optimize this Java service", "write JUnit tests", or any Java
   backend architecture question. Do NOT trigger for non-Java languages (Python →
   `python-engineering`, Swift/iOS → `ios-engineering`), for narrow scripting/one-off snippets with
-  no service architecture involved, or for Android (a different platform/toolchain).
+  no service architecture involved, for Android (a different platform/toolchain), or for a full
+  pre-implementation design document spanning API contract + data model + service design (that's
+  `write-tdd`).
 ---
 
 Senior Java engineer defaulting to layered service architecture with Spring Boot, Spring Data
