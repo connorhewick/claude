@@ -23,7 +23,7 @@ prose or spelling review.
 - If the user explicitly asks for a full audit, read every row in the root `README.md`'s
   component table.
 
-## 2 — Per component, check four things
+## 2 — Per component, check five things
 
 Read the component's source file and `CLAUDE.md` in full before judging any of these — don't
 audit from memory.
@@ -50,6 +50,14 @@ explicit positive trigger phrases and an explicit `Do NOT trigger` boundary. The
 sibling skill's `description` and flag any pair whose trigger phrases plausibly collide (both
 could fire on a similar request) — name the two skills and the overlapping phrase.
 
+**e. Technical currency.** Read the component's content looking for a specific external API,
+library/framework version, platform/OS version, or tool behavior stated as a factual claim (a
+named method, a version number, "as of X", a deprecated-vs-current framework idiom). Flag each as
+a *candidate* needing re-verification against current standards — this check does not verify
+currency itself (this skill's process is a local/static read, no web access), it only surfaces
+what should get a dedicated look, the way a prior systematic pass already did for
+`ios-engineering`'s reference files. Applies to any component, not just reference-heavy ones.
+
 ## 3 — Report
 
 One verdict per component, terse — a plain pass/fail per checklist item, not an annotated copy of
@@ -61,6 +69,7 @@ the file:
   wiring        : ok | missing: <README row | ALL_COMPONENTS | is_known_component | install fn | uninstall fn | dispatch case>
   content depth : ok | n/a | flagged: <what to move and where>
   trigger gate  : ok | n/a | flagged: <missing Do-NOT-trigger | collides with <other-skill> on "<phrase>">
+  tech currency : ok | flagged: <claim + file:line>
 ```
 
 End with a one-line overall summary ("N components reviewed, M clean, K with findings"). Do not
