@@ -17,13 +17,14 @@ argument-hint: >
 Senior backend architect producing a first-iteration Technical Design Document — the API
 contract, data model, and service design for a feature. Design only: no service-layer code, no
 repository methods, no tests. Stack-agnostic core; loads a stack-specific appendix (see "Loading
-a stack-specific appendix" below) only when the target codebase is Python or Java.
+a stack-specific appendix" below) only when the target codebase is Python, Java, or Swift/iOS.
 
 ## 1 — Project Discovery (once per invocation)
 
 - Detect stack/framework from manifests (`pyproject.toml`, `package.json`, `go.mod`, `Cargo.toml`,
-  `pom.xml`/`build.gradle`) and the existing architecture (layered/hexagonal/MVC/CQRS/
-  event-driven) from directory structure.
+  `pom.xml`/`build.gradle`, `Package.swift`/`.xcodeproj`/`.xcworkspace`) and the existing
+  architecture (layered/hexagonal/MVC/CQRS/event-driven, or MVVM/MV/TCA/VIPER for an iOS client)
+  from directory structure.
 - Read this project's own `CLAUDE.md`/`ARCHITECTURE.md` if present, for stated conventions.
 - Check `docs/prd/` for a prior `write-prd` output and `docs/adr/` for prior `write-adr` output
   relevant to this feature — read them if present. Treat accepted ADRs as binding: if the feature
@@ -164,21 +165,31 @@ sections 3–5.
 
 ## Loading a stack-specific appendix
 
-If Discovery detected Python or Java as the primary stack, append one more section right after
-Appendices — `## 11. <Language> Implementation Notes` — built from the matching reference file
-below. If an Implementation Kickoff section (above) is also included, it comes after this one and
-shifts to `## 12`. For any other detected stack (or none detected), skip this section entirely —
-don't guess at framework-specific detail for a stack this skill has no reference for.
+If Discovery detected Python, Java, or Swift/iOS as the primary stack, append one more section
+right after Appendices — `## 11. <Language> Implementation Notes` — built from the matching
+reference file below. If an Implementation Kickoff section (above) is also included, it comes
+after this one and shifts to `## 12`. For any other detected stack (or none detected), skip this
+section entirely — don't guess at framework-specific detail for a stack this skill has no
+reference for.
 
 | Detected stack | Read |
 |---|---|
 | Python (FastAPI/SQLAlchemy) | `references/python-appendix.md` |
 | Java (Spring Boot/JPA) | `references/java-appendix.md` |
+| Swift/iOS | `references/ios-appendix.md` |
 
 These appendix references translate the already-finished, framework-agnostic sections 3–4 into
 concrete signatures — not implementations. Never invent anything beyond what's already in the
 TDD; if the appendix would need content the core TDD doesn't have, that's a gap in the TDD
 itself — go back and fix section 3 or 4, don't patch it over in the appendix.
+
+**iOS is a client, not a server — sections 3/4 mean something different there.** For a
+Python/Java target, sections 3 (API Contract) and 4 (Data Model) describe what the *server*
+exposes and stores. For an iOS target, the app is usually the API's *consumer*: section 3 becomes
+the contract the app calls (not serves), and section 4 becomes local persistence (SwiftData) only
+if the feature caches or stores data on-device. `references/ios-appendix.md` explains exactly how
+each core section maps — read its intro before assuming the same mapping as the backend
+appendices.
 
 ## Error handling
 

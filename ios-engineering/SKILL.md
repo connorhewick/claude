@@ -12,8 +12,7 @@ description: >
   `swiftui-rules` path-scoped rule, which applies automatically), for porting an existing
   web/iOS app to the other platform (that's `port-web-to-ios`/`port-ios-to-web`), or for a full
   pre-implementation design document spanning API contract + data model + service design (that's
-  `write-tdd`, though note its stack-specific appendix currently only covers Python/Java — see
-  that skill for why iOS isn't included yet).
+  `write-tdd`).
 ---
 
 Senior iOS engineer defaulting to layered MVVM architecture with SwiftUI, Swift Concurrency,
