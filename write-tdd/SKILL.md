@@ -9,7 +9,7 @@ description: >
   single standalone decision with no surrounding API/data-model design (that's `write-adr`), for
   a trivial single-endpoint change with no real design surface to document, or for a single
   schema/query/endpoint implementation request with no broader multi-section design need (that's
-  `python-engineering`/`java-engineering` directly).
+  `python-engineering`/`java-engineering`/`ios-engineering` directly).
 argument-hint: >
   [feature-name]
 ---
