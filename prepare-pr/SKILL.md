@@ -5,8 +5,10 @@ description: >
   title/body against this repo's own bundled PR template (or the target project's own template,
   if it has one), push the branch, open the PR via `gh pr create`, then automatically run this
   environment's built-in `review` skill against the newly opened PR and surface its findings.
-  Triggered manually (`/prepare-pr`), not automatically — opening a PR is a deliberate action.
-disable-model-invocation: true
+  Triggers for: "open a PR", "prepare a pull request", "push this up and open a PR", "create the
+  PR for this branch", "ship this branch". Do NOT trigger for splitting a working tree into
+  commits with nothing pushed or opened (that's `split-commits`), or for reviewing an
+  already-open PR without opening a new one (that's the built-in `review` skill).
 allowed-tools: Read, Bash(git status *), Bash(git diff *), Bash(git log *), Bash(git push *), Bash(gh pr create *), Bash(gh pr edit *), Skill
 ---
 

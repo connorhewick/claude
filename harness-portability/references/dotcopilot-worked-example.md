@@ -19,10 +19,10 @@ Copilot-only fields either. Its installer is a dumb rsync/rename, not a content 
 That's the *simple* case — a straight copy works because both harnesses can read the same
 lowest-common-denominator frontmatter. The *hard* case is when source and target aren't
 LCD-compatible: this repo's own `doc-sync/SKILL.md` uses Claude-Code-only fields
-(`allowed-tools`, `disable-model-invocation`, `argument-hint`) that a Copilot export would need
-to strip, or that porting *into* Claude Code from a harness lacking them would need to add with
-sensible defaults. Step 4 of this skill is where that stripping/adding gets decided per
-component — don't assume a straight copy is ever safe without checking.
+(`allowed-tools`, `argument-hint`) that a Copilot export would need to strip, or that porting
+*into* Claude Code from a harness lacking them would need to add with sensible defaults. Step 4
+of this skill is where that stripping/adding gets decided per component — don't assume a
+straight copy is ever safe without checking.
 
 ## Type-mismatch catalog (concrete instances of the general problem)
 
@@ -61,14 +61,13 @@ here.
 
 ## Export example (this repo → dotcopilot)
 
-The false-cognate risk runs both ways. Consider exporting this repo's own `doc-sync` — a
-`disable-model-invocation: true` skill that orchestrates four bundled role-prompts
-(`explorer-agent.md`, `planner-agent.md`, `doc-writer-agent.md`, `reviewer-agent.md`) in sequence
-via the `Agent` tool:
+The false-cognate risk runs both ways. Consider exporting this repo's own `doc-sync` — a skill
+that orchestrates four bundled role-prompts (`explorer-agent.md`, `planner-agent.md`,
+`doc-writer-agent.md`, `reviewer-agent.md`) in sequence via the `Agent` tool:
 
-- **Frontmatter**: strip `disable-model-invocation`, `allowed-tools`, and `argument-hint` —
-  Claude-Code-specific fields dotcopilot's own frontmatter has no equivalent for (per the
-  lowest-common-denominator note above).
+- **Frontmatter**: strip `allowed-tools` and `argument-hint` — Claude-Code-specific fields
+  dotcopilot's own frontmatter has no equivalent for (per the lowest-common-denominator note
+  above).
 - **Type mapping, reversed**: `doc-sync` behaves like a fixed-sequence orchestrator dispatching
   through several sub-roles — exactly the shape the import catalog above identified as
   dotcopilot's own notion of "agent" (`ios-engineer.agent.md`), not dotcopilot's "skill". A naive

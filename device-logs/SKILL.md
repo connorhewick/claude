@@ -10,7 +10,6 @@ description: >
   (os_log/Logger), only what the app writes to stdout/stderr — see
   Limitations below before assuming a silent capture means nothing happened.
 allowed-tools: Bash(xcrun devicectl *), Bash(jq *), Bash(.claude/skills/device-logs/scripts/device-console.sh *)
-disable-model-invocation: true
 ---
 
 Pulls console output from a wirelessly connected iOS test device (already paired via
