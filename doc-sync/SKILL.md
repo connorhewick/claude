@@ -77,7 +77,9 @@ mode, there is no diff range to scope to; the explorer surveys the codebase (or 
 
 ## Deepen mode
 
-`/doc-sync deepen [paths...]` grows `README.md` in place with onboarding-grade sections a
+`/doc-sync deepen [paths...]` (the shared `[mode] [range] [paths...]` grammar from Invocation
+above applies; `range` has no meaning here and is simply left out) grows `README.md` in place
+with onboarding-grade sections a
 newcomer needs but a drift-focused pass wouldn't produce — it never creates a second file
 (no `docs/onboarding.md`, no API-reference/OpenAPI generation; both were considered and
 explicitly dropped for this skill). The planner drafts up to four sections, each added only if
