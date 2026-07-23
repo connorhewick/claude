@@ -10,15 +10,21 @@ No `src/` or category nesting. Each component's directory name is its identifier
 (`write-adr/`, `doc-sync/`, `harness-portability/`). A component that needs supporting files
 (bundled reference docs, role-prompts, scripts) keeps them inside its own directory —
 `doc-sync/explorer-agent.md`, `ios-engineering/references/*.md` — never a separate top-level
-directory per supporting file.
+directory per supporting file. **One stated exception:** `rule`-type components don't each get
+their own directory — they share a single top-level `rules/` directory, one file per rule
+(`rules/git-rules.md`, `rules/swiftui-rules.md`). A different target harness adapting this
+template can keep that exception, drop it, or apply it to a different extension point — the
+transferable idea is that a repo can name a deliberate exception to its own one-dir-per-component
+rule, not that rules specifically must be the one that gets it.
 
 ## 2 — Self-documenting components
 
-Each directory's source file — `SKILL.md`, `agent.md`, `rule.md`, `command.md`, `hook.sh` +
-`hook.json`, `output-style.md`, or `statusline.sh` for this repo's own seven types — *is* its own
-documentation. No separate per-component `README.md`. A different target harness will have its
-own file-naming convention per extension point; the principle that transfers is "the source file
-doubles as the doc," not the specific filenames.
+Each directory's source file — `SKILL.md`, `agent.md`, `command.md`, `hook.sh` + `hook.json`,
+`output-style.md`, or `statusline.sh` for this repo's own seven types, plus `rules/<name>.md` for
+the shared-directory `rule` exception above — *is* its own documentation. No separate
+per-component `README.md`. A different target harness will have its own file-naming convention
+per extension point; the principle that transfers is "the source file doubles as the doc," not
+the specific filenames.
 
 ## 3 — A single manifest (`components.sh`)
 

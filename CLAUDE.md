@@ -16,14 +16,15 @@ This repo is a composable library of Claude Code components (skills, agents, rul
 its own top-level directory with its source file, which doubles as that component's
 documentation (no separate per-component `README.md`); there is no project-level
 `.claude/agents`/`.claude/skills`/`.claude/rules` in this repo itself; developing the components
-doesn't require having them installed.
+doesn't require having them installed. **Exception:** `rule`-type components share one top-level
+`rules/` directory (`rules/<name>.md` per rule) instead of each getting its own directory.
 
 ## Choosing a component type
 
 Before adding a *new* component, first check whether the request actually belongs in an
 *existing* one instead — most often, a new convention scoped to a language, framework, or
 concern that's already covered by an existing `rule` component (e.g. a new SwiftUI convention
-belongs in `swiftui-rules/rule.md`, a new git convention in `git-rules/rule.md`), or a new
+belongs in `rules/swiftui-rules.md`, a new git convention in `rules/git-rules.md`), or a new
 cross-project default that belongs in `global-rules`'s own file (see the `global-rules` bullet
 below). Only once nothing existing fits does a new top-level component get created.
 
@@ -33,8 +34,10 @@ needs — don't take a proposed type at face value:
 - **rule** (`.claude/rules/*.md`): auto-applied and path-scoped. No invocation — Claude reads it
   automatically whenever the paths it declares are touched. Use for a standing constraint or
   convention scoped to particular files/directories (e.g. "always include a `#Preview` for
-  SwiftUI views"). If the rule is scoped to a specific file type, language, or framework, its
-  `rule.md` must carry `paths:` frontmatter matching that scope (e.g. `paths: ["**/*.swift"]`)
+  SwiftUI views"). Its source file lives at `rules/<name>.md`, shared with every other rule
+  component (the one exception to "each component gets its own top-level directory," below). If
+  the rule is scoped to a specific file type, language, or framework, its `rules/<name>.md` must
+  carry `paths:` frontmatter matching that scope (e.g. `paths: ["**/*.swift"]`)
   so it only enters context in sessions that actually touch matching files, rather than loading
   unconditionally into every session regardless of relevance. A rule with no natural file-type
   scope — a cross-cutting concern like git/version-control or documentation conventions — can

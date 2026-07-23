@@ -2,8 +2,9 @@
 
 A composable library of personal Claude Code customizations. Each customization — a skill,
 agent, or rule — lives in its own top-level directory with its source file, which doubles as
-that component's documentation. `install.sh` copies the ones you want into `~/.claude/` (or
-`$CLAUDE_CONFIG_DIR`, if set);
+that component's documentation. The one exception is `rule`-type components, which share a
+single top-level `rules/` directory (one file per rule) rather than each getting its own.
+`install.sh` copies the ones you want into `~/.claude/` (or `$CLAUDE_CONFIG_DIR`, if set);
 `uninstall.sh` removes exactly what was installed.
 
 This is a personal config repo, not a team-distributed product — there's no plugin marketplace,
@@ -46,9 +47,9 @@ never mistaken for a live component or auto-loaded into a session.
 | [`harness-scaffold`](harness-scaffold) | skill | Auto-trigger or `/harness-scaffold` | `~/.claude/skills/harness-scaffold/` | Stands up this repo's own component-library structure (manifest, install/uninstall scripts, README index) for a different target harness |
 | [`statusline`](statusline) | statusline | `/statusline` to select, then persists | `~/.claude/statuslines/statusline.sh` | Folder, git branch, model, effort, context bar, tokens, cache %, cost, rate limit |
 | [`global-rules`](global-rules) | global-rules | Automatic, every session | `~/.claude/CLAUDE.md` | Personal cross-project defaults, loaded in every project on this machine |
-| [`git-rules`](git-rules) | rule | Automatic, every session | `~/.claude/rules/git-rules.md` | Personal git/version-control conventions: commits, branches, worktrees, PR hygiene |
-| [`swiftui-rules`](swiftui-rules) | rule | Automatic, when `**/*.swift` is touched | `~/.claude/rules/swiftui-rules.md` | SwiftUI `#Preview` conventions, scoped to `**/*.swift` so it's inert elsewhere |
-| [`documentation-rules`](documentation-rules) | rule | Automatic, every session | `~/.claude/rules/documentation-rules.md` | Personal documentation conventions: ADRs, ticket/doc naming |
+| [`git-rules`](rules/git-rules.md) | rule | Automatic, every session | `~/.claude/rules/git-rules.md` | Personal git/version-control conventions: commits, branches, worktrees, PR hygiene |
+| [`swiftui-rules`](rules/swiftui-rules.md) | rule | Automatic, when `**/*.swift` is touched | `~/.claude/rules/swiftui-rules.md` | SwiftUI `#Preview` conventions, scoped to `**/*.swift` so it's inert elsewhere |
+| [`documentation-rules`](rules/documentation-rules.md) | rule | Automatic, every session | `~/.claude/rules/documentation-rules.md` | Personal documentation conventions: ADRs, ticket/doc naming |
 
 Two more component types are supported by `install.sh`/`uninstall.sh` but have no example yet:
 
@@ -91,10 +92,12 @@ the skill body, is what decides whether it activates.
 
 ## Adding a new component
 
-1. Create `<name>/` with its source file (`SKILL.md`, `agent.md`, `rule.md`, `command.md`,
-   `hook.sh` + `hook.json`, `output-style.md`, or `statusline.sh`). That file is the
-   component's documentation as well as its implementation — capture any non-obvious "why"
-   (design trade-offs, what it was split out of) in its own section rather than a separate doc.
+1. Create `<name>/` with its source file (`SKILL.md`, `agent.md`, `command.md`, `hook.sh` +
+   `hook.json`, `output-style.md`, or `statusline.sh`). That file is the component's
+   documentation as well as its implementation — capture any non-obvious "why" (design
+   trade-offs, what it was split out of) in its own section rather than a separate doc.
+   **Exception:** a new `rule`-type component doesn't get its own top-level directory — add
+   `rules/<name>.md` to the shared `rules/` directory instead.
 2. Add a row to the component table above, including its **Invocation** cell (see "Using
    components in a session" above for the vocabulary to use).
 3. Touch four things across `install.sh` / `uninstall.sh` (plus `components.sh`, shared by

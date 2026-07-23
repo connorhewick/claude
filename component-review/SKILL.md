@@ -19,7 +19,7 @@ prose or spelling review.
 
 - If the user names specific component(s), audit only those.
 - If invoked with no target, default to whatever changed on the current branch:
-  `git diff --name-only origin/main...HEAD -- '*/SKILL.md' '*/rule.md' '*/agent.md' '*/command.md' '*/hook.json' '*/output-style.md' '*/global-rules'` (adjust the base branch if the repo's default isn't `main`), plus any new top-level directories.
+  `git diff --name-only origin/main...HEAD -- '*/SKILL.md' 'rules/*.md' '*/agent.md' '*/command.md' '*/hook.json' '*/output-style.md' '*/global-rules'` (adjust the base branch if the repo's default isn't `main`), plus any new top-level directories.
 - If the user explicitly asks for a full audit, read every row in the root `README.md`'s
   component table.
 
