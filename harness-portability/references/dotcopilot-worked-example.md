@@ -64,7 +64,7 @@ here.
 The false-cognate risk runs both ways. Consider exporting this repo's own `doc-sync` — a
 `disable-model-invocation: true` skill that orchestrates four bundled role-prompts
 (`explorer-agent.md`, `planner-agent.md`, `doc-writer-agent.md`, `reviewer-agent.md`) in sequence
-via the `Task` tool:
+via the `Agent` tool:
 
 - **Frontmatter**: strip `disable-model-invocation`, `allowed-tools`, and `argument-hint` —
   Claude-Code-specific fields dotcopilot's own frontmatter has no equivalent for (per the
