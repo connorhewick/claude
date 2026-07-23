@@ -56,7 +56,7 @@ short enough not to need staged loading.
 - **Migration stub** — an Alembic `upgrade()`/`downgrade()` pair per new table/column, with an
   explicit note on ordering when a new table has a foreign key to another new table in the same
   TDD (create the referenced table first).
-- **Repository interface** — one method per data-access operation the Service Design section
+- **Repository interface** — one method per data-access operation the Service & UI Design section
   names, each with an inline comment tracing it back to the specific API endpoint that calls it.
 - **Enum fields** — state explicitly whether an enum is DB-native (`postgresql.ENUM`) or
   VARCHAR-backed with application-level validation; don't leave this ambiguous, since migrating

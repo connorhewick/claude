@@ -14,10 +14,14 @@ argument-hint: >
   [feature-name]
 ---
 
-Senior backend architect producing a first-iteration Technical Design Document — the API
-contract, data model, and service design for a feature. Design only: no service-layer code, no
-repository methods, no tests. Stack-agnostic core; loads a stack-specific appendix (see "Loading
-a stack-specific appendix" below) only when the target codebase is Python, Java, or Swift/iOS.
+Senior architect producing a first-iteration Technical Design Document for a feature — a
+backend's API contract, data model, and service design, and/or a client's screen/navigation/state
+design and its data consumption. Which of those actually apply depends on the feature — a
+backend-only feature has no UI to design; a UI-only feature (a new screen, a navigation change)
+has no API/data model to design. Design only: no service-layer code, no repository methods, no
+view/view-model implementations, no tests. Stack-agnostic core; loads a stack-specific appendix
+(see "Loading a stack-specific appendix" below) only when the target codebase is Python, Java, or
+Swift/iOS.
 
 ## 1 — Project Discovery (once per invocation)
 
@@ -70,15 +74,20 @@ match the target codebase's actual framework conventions.>
 
 <New tables or schema changes, with an ER-style diagram if there's more than one new table.>
 
-## 5. Service Design
+## 5. Service & UI Design
 
-<Layer responsibilities for the new/changed code, the sequence of calls across layers, error
-handling strategy.>
+<For a backend/service feature: layer responsibilities for the new/changed code, the sequence of
+calls across layers, error handling strategy. For a UI-heavy client feature (iOS, web frontend):
+which screens/views exist and how they're composed, the navigation flow between them, what state
+each view/view-model owns and where it comes from (network/local/derived), and the
+loading/error/empty states the UI must handle. A feature can need either, both, or (for a
+pure-UI feature with no API/data-model surface) only the UI half — cover whichever this feature
+actually has; don't force service-layer framing onto a screen-only change.>
 
 ## 6. Non-Functional Requirements
 
-<Performance, security, observability expectations. "N/A" if this feature has none beyond the
-codebase's existing defaults.>
+<Performance, security, observability, and (for a UI feature) accessibility expectations. "N/A"
+if this feature has none beyond the codebase's existing defaults.>
 
 ## 7. Migration & Rollout
 
@@ -141,8 +150,8 @@ Before showing the finished TDD to the user, check it against every item below:
 - [ ] Every API endpoint in section 3 has a corresponding data path in section 4 (or explicitly
       doesn't need one)
 - [ ] Every new table in section 4 maps to at least one API field or operation in section 3
-- [ ] Error scenarios are covered in both section 3 (API-level) and section 5 (service-level)
-      handling
+- [ ] Error scenarios are covered wherever they apply — API-level (section 3) and/or
+      service-level/UI-level (section 5) — matching whichever sections aren't "N/A"
 - [ ] Non-Functional Requirements and Migration & Rollout are either filled in or explicitly
       "N/A" — never left blank
 - [ ] The Architecture Decision gate (step 5) was actually run, not skipped
@@ -178,18 +187,21 @@ reference for.
 | Java (Spring Boot/JPA) | `references/java-appendix.md` |
 | Swift/iOS | `references/ios-appendix.md` |
 
-These appendix references translate the already-finished, framework-agnostic sections 3–4 into
+These appendix references translate the already-finished, framework-agnostic sections 3–5 into
 concrete signatures — not implementations. Never invent anything beyond what's already in the
 TDD; if the appendix would need content the core TDD doesn't have, that's a gap in the TDD
-itself — go back and fix section 3 or 4, don't patch it over in the appendix.
+itself — go back and fix section 3, 4, or 5, don't patch it over in the appendix.
 
-**iOS is a client, not a server — sections 3/4 mean something different there.** For a
-Python/Java target, sections 3 (API Contract) and 4 (Data Model) describe what the *server*
-exposes and stores. For an iOS target, the app is usually the API's *consumer*: section 3 becomes
-the contract the app calls (not serves), and section 4 becomes local persistence (SwiftData) only
-if the feature caches or stores data on-device. `references/ios-appendix.md` explains exactly how
-each core section maps — read its intro before assuming the same mapping as the backend
-appendices.
+**iOS is a client, not a server — sections 3/4 mean something different there, and section 5 can
+be its primary content.** For a Python/Java target, sections 3 (API Contract) and 4 (Data Model)
+describe what the *server* exposes and stores, and section 5 covers server-side service/layer
+design. For an iOS target, the app is usually the API's *consumer*: section 3 becomes the
+contract the app calls (not serves), section 4 becomes local persistence (SwiftData) only if the
+feature caches or stores data on-device, and section 5 covers the app's own screen/navigation/
+state design — for a UI-only iOS feature with no API/data-model surface, section 5 is where all
+the real design content lives, with sections 3–4 both "N/A". `references/ios-appendix.md`
+explains exactly how each core section maps — read its intro before assuming the same mapping as
+the backend appendices.
 
 ## Error handling
 

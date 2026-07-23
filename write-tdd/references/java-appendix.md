@@ -51,18 +51,18 @@ feature that, say, adds no new table.
   (query parameters for list endpoints) — only the members this feature's endpoints actually use.
 - **Entity models** — `@Entity` classes holding only `@Column`/`@JoinColumn`/relationship
   mappings, no logic. `@OneToMany`/`@ManyToOne` default to `FetchType.LAZY` unless the TDD's
-  Service Design section explicitly justifies eager loading. Money fields are `BigDecimal`, never
-  `Double`/`Float`. Add `@Version` for optimistic locking on any entity the TDD's NFR section
-  flags as concurrently-written.
+  Service & UI Design section explicitly justifies eager loading. Money fields are `BigDecimal`,
+  never `Double`/`Float`. Add `@Version` for optimistic locking on any entity the TDD's NFR
+  section flags as concurrently-written.
 
 ## 3. Service & repository
 
-- **Service interface** — one method per operation the TDD's Service Design section names,
+- **Service interface** — one method per operation the TDD's Service & UI Design section names,
   Javadoc'd with any caching/transactional contract the method needs (`@Transactional`,
   `@Cacheable`/`@CacheEvict` if the project already uses a cache layer — don't introduce caching
   a TDD didn't ask for).
 - **Repository interface** — Spring Data `JpaRepository` with derived-query method signatures
-  (`findByStatusAndCreatedAtBefore(...)`), one per query the Service Design section actually
+  (`findByStatusAndCreatedAtBefore(...)`), one per query the Service & UI Design section actually
   needs — no speculative finder methods.
 
 ## 4. Migrations & observability
