@@ -4,6 +4,7 @@
 #
 # Usage:
 #   ./install.sh all                  install every component
+#   ./install.sh rules                install every rule-type component
 #   ./install.sh write-prd write-adr  install just the named components
 set -euo pipefail
 
@@ -12,7 +13,7 @@ source "$here/components.sh"
 source "$here/common.sh"
 
 usage() {
-  echo "Usage: $0 all | <component> [<component> ...]" >&2
+  echo "Usage: $0 all | rules | <component> [<component> ...]" >&2
   echo "Known components:" >&2
   printf '  %s\n' "${ALL_COMPONENTS[@]}" >&2
 }
@@ -80,6 +81,8 @@ fi
 targets=("$@")
 if [[ "${targets[0]}" == "all" ]]; then
   targets=("${ALL_COMPONENTS[@]}")
+elif [[ "${targets[0]}" == "rules" ]]; then
+  targets=("${RULE_COMPONENTS[@]}")
 fi
 
 for name in "${targets[@]}"; do

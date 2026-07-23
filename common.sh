@@ -77,17 +77,17 @@ uninstall_agent() {
   echo "removed agent: $name"
 }
 
-# --- rule: <name>/rule.md -> ~/.claude/rules/<name>.md
+# --- rule: rules/<name>.md -> ~/.claude/rules/<name>.md
 install_rule() {
   local name="$1"
   local dest="$CLAUDE_DIR/rules/$name.md"
-  if [[ -f "$dest" ]] && cmp -s "$SRC/$name/rule.md" "$dest"; then
+  if [[ -f "$dest" ]] && cmp -s "$SRC/rules/$name.md" "$dest"; then
     echo "rule $name is already up to date — nothing to do."
     return 0
   fi
   mkdir -p "$CLAUDE_DIR/rules"
   backup_if_exists "$dest" "$CLAUDE_DIR/.component-backups/rules/$name.md.bak.$(date +%Y%m%d%H%M%S)"
-  cp "$SRC/$name/rule.md" "$dest"
+  cp "$SRC/rules/$name.md" "$dest"
   echo "installed rule: $name -> $dest"
 }
 

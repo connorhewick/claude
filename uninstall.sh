@@ -6,6 +6,7 @@
 #
 # Usage:
 #   ./uninstall.sh all                  remove every component
+#   ./uninstall.sh rules                remove every rule-type component
 #   ./uninstall.sh write-prd write-adr  remove just the named components
 set -euo pipefail
 
@@ -14,7 +15,7 @@ source "$here/components.sh"
 source "$here/common.sh"
 
 usage() {
-  echo "Usage: $0 all | <component> [<component> ...]" >&2
+  echo "Usage: $0 all | rules | <component> [<component> ...]" >&2
   echo "Known components:" >&2
   printf '  %s\n' "${ALL_COMPONENTS[@]}" >&2
 }
@@ -79,6 +80,8 @@ fi
 targets=("$@")
 if [[ "${targets[0]}" == "all" ]]; then
   targets=("${ALL_COMPONENTS[@]}")
+elif [[ "${targets[0]}" == "rules" ]]; then
+  targets=("${RULE_COMPONENTS[@]}")
 fi
 
 for name in "${targets[@]}"; do
