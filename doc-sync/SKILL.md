@@ -19,7 +19,7 @@ Keep a project's documentation truthful against its code. Orchestrate the four r
 sequence — do not do their work inline; delegate so each runs in its own context. These roles
 are bundled with this skill, not separately installed agents: for each step, read the named
 `doc-sync/<role>-agent.md` file's body (everything after its frontmatter) and pass it as the
-prompt to the `Task` tool, dispatched via `subagent_type: general-purpose` for `doc-writer` and
+prompt to the `Agent` tool, dispatched via `subagent_type: general-purpose` for `doc-writer` and
 `reviewer`, or the built-in `Explore`/`Plan` types for `explorer`/`planner` (those already match
 those two roles closely). Append the step's task-specific instructions — the diff range, the
 paths in scope, and the prior step's output — after the bundled role-prompt.
