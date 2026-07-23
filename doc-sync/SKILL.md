@@ -11,9 +11,9 @@ description: >
   the README". Three modes: report (read-only — audits and records findings),
   fix (applies doc edits — the default when invoked interactively), and deepen
   (adds/refreshes Architecture Overview, Common Development Tasks, Gotchas,
-  and Key Files sections in README.md). Do NOT auto-trigger during unrelated
-  work; it is invoked deliberately (/doc-sync).
-disable-model-invocation: true
+  and Key Files sections in README.md). Do NOT trigger for editing docs the
+  user is already dictating specific content for (just make the edit), or for
+  general code review/refactoring with no doc-drift signal.
 allowed-tools: Task, Read, Edit, Write, Glob, Grep, Bash(git *)
 argument-hint: > 
   [mode] [range] [paths...]

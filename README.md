@@ -34,12 +34,12 @@ never mistaken for a live component or auto-loaded into a session.
 | [`write-prd`](write-prd) | skill | Auto-trigger or `/write-prd` | `~/.claude/skills/write-prd/` | Interviews you and writes a PRD at the start of a new project/feature |
 | [`write-adr`](write-adr) | skill | Auto-trigger or `/write-adr` | `~/.claude/skills/write-adr/` | Writes a lightweight ADR for a significant decision |
 | [`write-tdd`](write-tdd) | skill | Auto-trigger or `/write-tdd` | `~/.claude/skills/write-tdd/` | Writes a Technical Design Document (API contract, data model, service design) for a feature, with optional Python/Java implementation-notes appendices |
-| [`prepare-pr`](prepare-pr) | skill | `/prepare-pr` only | `~/.claude/skills/prepare-pr/` | Drafts a PR title/body against its bundled template, pushes, opens the PR, then runs an automatic post-open review |
+| [`prepare-pr`](prepare-pr) | skill | Auto-trigger or `/prepare-pr` | `~/.claude/skills/prepare-pr/` | Drafts a PR title/body against its bundled template, pushes, opens the PR, then runs an automatic post-open review |
 | [`split-commits`](split-commits) | skill | Auto-trigger or `/split-commits` | `~/.claude/skills/split-commits/` | Splits a mixed working tree into atomic commits |
-| [`device-logs`](device-logs) | skill | `/device-logs` only | `~/.claude/skills/device-logs/` | Captures console output from a wirelessly paired iOS device |
+| [`device-logs`](device-logs) | skill | Auto-trigger or `/device-logs` | `~/.claude/skills/device-logs/` | Captures console output from a wirelessly paired iOS device |
 | [`port-ios-to-web`](port-ios-to-web) | skill | Auto-trigger or `/port-ios-to-web` | `~/.claude/skills/port-ios-to-web/` | Ports an iOS app to an equivalent web app |
 | [`port-web-to-ios`](port-web-to-ios) | skill | Auto-trigger or `/port-web-to-ios` | `~/.claude/skills/port-web-to-ios/` | Ports a web app to an equivalent iOS app |
-| [`doc-sync`](doc-sync) | skill | `/doc-sync` only | `~/.claude/skills/doc-sync/` | Audits docs against code for drift; reports or fixes (bundles its own explorer/planner/doc-writer/reviewer role-prompts) |
+| [`doc-sync`](doc-sync) | skill | Auto-trigger or `/doc-sync` | `~/.claude/skills/doc-sync/` | Audits docs against code for drift; reports or fixes (bundles its own explorer/planner/doc-writer/reviewer role-prompts) |
 | [`session-handoff`](session-handoff) | skill | Auto-trigger or `/session-handoff` | `~/.claude/skills/session-handoff/` | Writes a session handoff doc, plus a harness-feedback doc (`~/.claude/harness-feedback/`) on what to keep/change about the Claude Code setup itself |
 | [`component-review`](component-review) | skill | Auto-trigger or `/component-review` | `~/.claude/skills/component-review/` | Audits this repo's own components against `CLAUDE.md`'s type-decision and authoring conventions |
 | [`ios-engineering`](ios-engineering) | skill | Auto-trigger or `/ios-engineering` | `~/.claude/skills/ios-engineering/` | Native iOS/Swift engineering: MVVM scaffolding, SwiftUI, Core Data, networking, concurrency, security, performance, testing (bundles 9 topic references) |
@@ -74,9 +74,9 @@ any given one; in general, by what that column says:
 - **Auto-trigger or `/<name>`** — most skills. Describe what you want in plain language (the
   "Triggers for" phrases in the skill's `description`) and the matching skill fires on its own,
   or invoke it directly.
-- **`/<name>` only** — skills deliberately gated behind explicit invocation
-  (`disable-model-invocation: true`) because the action is too consequential to fire without you
-  naming it, and slash commands (no auto-trigger by design).
+- **`/<name>` only** — slash commands (no auto-trigger by design). A skill can also be gated this
+  way (`disable-model-invocation: true`) for an action too consequential to fire without being
+  named explicitly; no skill in this repo currently uses that gate.
 - **`/<name>` to select, then persists** — statuslines and output styles: pick once, active for
   the rest of the session without further invocation.
 - **Spawned by Claude, never invoked directly** — agents (the `agent.md` extension point — no
