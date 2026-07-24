@@ -20,53 +20,55 @@ usage() {
   printf '  %s\n' "${ALL_COMPONENTS[@]}" >&2
 }
 
-uninstall_write_prd()           { uninstall_skill  write-prd; }
-uninstall_write_adr()           { uninstall_skill  write-adr; }
-uninstall_write_tdd()           { uninstall_skill  write-tdd; }
-uninstall_prepare_pr()          { uninstall_skill  prepare-pr; }
-uninstall_split_commits()       { uninstall_skill  split-commits; }
-uninstall_device_logs()         { uninstall_skill  device-logs; }
-uninstall_port_ios_to_web()     { uninstall_skill  port-ios-to-web; }
-uninstall_port_web_to_ios()     { uninstall_skill  port-web-to-ios; }
-uninstall_doc_sync()            { uninstall_skill  doc-sync; }
-uninstall_session_handoff()     { uninstall_skill  session-handoff; }
-uninstall_component_review()    { uninstall_skill  component-review; }
-uninstall_ios_engineering()     { uninstall_skill  ios-engineering; }
-uninstall_python_engineering()  { uninstall_skill  python-engineering; }
-uninstall_java_engineering()    { uninstall_skill  java-engineering; }
-uninstall_harness_portability() { uninstall_skill  harness-portability; }
-uninstall_issue_workplan()      { uninstall_skill  issue-workplan; }
-uninstall_harness_scaffold()    { uninstall_skill  harness-scaffold; }
-uninstall_statusline()          { uninstall_statusline_file statusline; }
-uninstall_global_rules()        { uninstall_claude_md_file global-rules; }
-uninstall_git_rules()           { uninstall_rule git-rules; }
-uninstall_swiftui_rules()       { uninstall_rule swiftui-rules; }
-uninstall_documentation_rules() { uninstall_rule documentation-rules; }
+uninstall_write_prd()              { uninstall_skill  write-prd; }
+uninstall_write_adr()              { uninstall_skill  write-adr; }
+uninstall_write_tdd()              { uninstall_skill  write-tdd; }
+uninstall_write_architecture_doc() { uninstall_skill  write-architecture-doc; }
+uninstall_prepare_pr()             { uninstall_skill  prepare-pr; }
+uninstall_split_commits()          { uninstall_skill  split-commits; }
+uninstall_device_logs()            { uninstall_skill  device-logs; }
+uninstall_port_ios_to_web()        { uninstall_skill  port-ios-to-web; }
+uninstall_port_web_to_ios()        { uninstall_skill  port-web-to-ios; }
+uninstall_doc_sync()               { uninstall_skill  doc-sync; }
+uninstall_session_handoff()        { uninstall_skill  session-handoff; }
+uninstall_component_review()       { uninstall_skill  component-review; }
+uninstall_ios_engineering()        { uninstall_skill  ios-engineering; }
+uninstall_python_engineering()     { uninstall_skill  python-engineering; }
+uninstall_java_engineering()       { uninstall_skill  java-engineering; }
+uninstall_harness_portability()    { uninstall_skill  harness-portability; }
+uninstall_issue_workplan()         { uninstall_skill  issue-workplan; }
+uninstall_harness_scaffold()       { uninstall_skill  harness-scaffold; }
+uninstall_statusline()             { uninstall_statusline_file statusline; }
+uninstall_global_rules()           { uninstall_claude_md_file global-rules; }
+uninstall_git_rules()              { uninstall_rule git-rules; }
+uninstall_swiftui_rules()          { uninstall_rule swiftui-rules; }
+uninstall_documentation_rules()    { uninstall_rule documentation-rules; }
 
 run_uninstaller() {
   case "$1" in
-    write-prd)            uninstall_write_prd ;;
-    write-adr)            uninstall_write_adr ;;
-    write-tdd)            uninstall_write_tdd ;;
-    prepare-pr)           uninstall_prepare_pr ;;
-    split-commits)        uninstall_split_commits ;;
-    device-logs)          uninstall_device_logs ;;
-    port-ios-to-web)      uninstall_port_ios_to_web ;;
-    port-web-to-ios)      uninstall_port_web_to_ios ;;
-    doc-sync)             uninstall_doc_sync ;;
-    session-handoff)      uninstall_session_handoff ;;
-    component-review)     uninstall_component_review ;;
-    ios-engineering)      uninstall_ios_engineering ;;
-    python-engineering)   uninstall_python_engineering ;;
-    java-engineering)     uninstall_java_engineering ;;
-    harness-portability)  uninstall_harness_portability ;;
-    issue-workplan)       uninstall_issue_workplan ;;
-    harness-scaffold)     uninstall_harness_scaffold ;;
-    statusline)           uninstall_statusline ;;
-    global-rules)         uninstall_global_rules ;;
-    git-rules)            uninstall_git_rules ;;
-    swiftui-rules)        uninstall_swiftui_rules ;;
-    documentation-rules)  uninstall_documentation_rules ;;
+    write-prd)              uninstall_write_prd ;;
+    write-adr)              uninstall_write_adr ;;
+    write-tdd)              uninstall_write_tdd ;;
+    write-architecture-doc) uninstall_write_architecture_doc ;;
+    prepare-pr)             uninstall_prepare_pr ;;
+    split-commits)          uninstall_split_commits ;;
+    device-logs)            uninstall_device_logs ;;
+    port-ios-to-web)        uninstall_port_ios_to_web ;;
+    port-web-to-ios)        uninstall_port_web_to_ios ;;
+    doc-sync)               uninstall_doc_sync ;;
+    session-handoff)        uninstall_session_handoff ;;
+    component-review)       uninstall_component_review ;;
+    ios-engineering)        uninstall_ios_engineering ;;
+    python-engineering)     uninstall_python_engineering ;;
+    java-engineering)       uninstall_java_engineering ;;
+    harness-portability)    uninstall_harness_portability ;;
+    issue-workplan)         uninstall_issue_workplan ;;
+    harness-scaffold)       uninstall_harness_scaffold ;;
+    statusline)             uninstall_statusline ;;
+    global-rules)           uninstall_global_rules ;;
+    git-rules)              uninstall_git_rules ;;
+    swiftui-rules)          uninstall_swiftui_rules ;;
+    documentation-rules)    uninstall_documentation_rules ;;
     *)
       echo "uninstall.sh: unknown component '$1'" >&2
       exit 1

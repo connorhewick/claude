@@ -12,6 +12,7 @@ ALL_COMPONENTS=(
   write-prd
   write-adr
   write-tdd
+  write-architecture-doc
   prepare-pr
   split-commits
   device-logs
@@ -44,7 +45,7 @@ RULE_COMPONENTS=(
 
 is_known_component() {
   case "$1" in
-    write-prd|write-adr|write-tdd|prepare-pr|split-commits| \
+    write-prd|write-adr|write-tdd|write-architecture-doc|prepare-pr|split-commits| \
     device-logs|port-ios-to-web|port-web-to-ios|doc-sync| \
     session-handoff|component-review|ios-engineering|python-engineering|java-engineering| \
     harness-portability|issue-workplan|harness-scaffold|statusline|global-rules|git-rules| \
