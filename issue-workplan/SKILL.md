@@ -100,6 +100,12 @@ ask, the resolved one>
 ## Decisions made during planning
 
 - <question that was ambiguous> → <resolved answer> — <why, if non-obvious>
+
+## Completion
+
+Once every issue above is implemented and merged, delete this file
+(`docs/workplans/NNNN-slug.md`) — it's scratch scaffolding for execution, not permanent
+documentation.
 ```
 
 Every "Resolved scope" and "Decisions made" entry must read as a closed decision, not a
