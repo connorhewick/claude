@@ -32,6 +32,7 @@ ALL_COMPONENTS=(
   git-rules
   swiftui-rules
   documentation-rules
+  coding-rules
 )
 
 # Every rule-type component, in the shared rules/ directory. `install.sh rules`
@@ -41,6 +42,7 @@ RULE_COMPONENTS=(
   git-rules
   swiftui-rules
   documentation-rules
+  coding-rules
 )
 
 is_known_component() {
@@ -49,7 +51,7 @@ is_known_component() {
     device-logs|port-ios-to-web|port-web-to-ios|doc-sync| \
     session-handoff|component-review|ios-engineering|python-engineering|java-engineering| \
     harness-portability|issue-workplan|harness-scaffold|statusline|global-rules|git-rules| \
-    swiftui-rules|documentation-rules)
+    swiftui-rules|documentation-rules|coding-rules)
       return 0 ;;
     *)
       return 1 ;;
