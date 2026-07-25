@@ -43,6 +43,7 @@ uninstall_global_rules()           { uninstall_claude_md_file global-rules; }
 uninstall_git_rules()              { uninstall_rule git-rules; }
 uninstall_swiftui_rules()          { uninstall_rule swiftui-rules; }
 uninstall_documentation_rules()    { uninstall_rule documentation-rules; }
+uninstall_coding_rules()           { uninstall_rule coding-rules; }
 
 run_uninstaller() {
   case "$1" in
@@ -69,6 +70,7 @@ run_uninstaller() {
     git-rules)              uninstall_git_rules ;;
     swiftui-rules)          uninstall_swiftui_rules ;;
     documentation-rules)    uninstall_documentation_rules ;;
+    coding-rules)           uninstall_coding_rules ;;
     *)
       echo "uninstall.sh: unknown component '$1'" >&2
       exit 1

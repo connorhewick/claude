@@ -54,6 +54,7 @@ never mistaken for a live component or auto-loaded into a session.
 | [`git-rules`](rules/git-rules.md) | rule | Automatic, every session | `~/.claude/rules/git-rules.md` | Personal git/version-control conventions: commits, branches, worktrees, PR hygiene |
 | [`swiftui-rules`](rules/swiftui-rules.md) | rule | Automatic, when `**/*.swift` is touched | `~/.claude/rules/swiftui-rules.md` | SwiftUI `#Preview` conventions, scoped to `**/*.swift` so it's inert elsewhere |
 | [`documentation-rules`](rules/documentation-rules.md) | rule | Automatic, every session | `~/.claude/rules/documentation-rules.md` | Personal documentation conventions: ADRs, ticket/doc naming |
+| [`coding-rules`](rules/coding-rules.md) | rule | Automatic, every session | `~/.claude/rules/coding-rules.md` | Coding principles: SOLID, DRY, naming, function size, guard clauses |
 
 Two more component types are supported by `install.sh`/`uninstall.sh` but have no example yet:
 
