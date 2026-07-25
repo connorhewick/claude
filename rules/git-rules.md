@@ -11,6 +11,13 @@
   `main`'s working tree first and branch only when a commit tool's precondition check catches
   it. A dirty default-branch working tree blocks any other session sharing that checkout from
   cleanly branching off `main` for its own task in the meantime.
+- When starting a new, distinct task, always branch off `main` (or whatever branch the user
+  specifies) rather than continuing on top of whatever branch happens to be checked out — even
+  if that's a feature branch left over from earlier work in the session. Each distinct task gets
+  its own branch off the right base, not piled onto an unrelated one.
+- Give every branch a descriptive name that identifies the feature or work item, following this
+  repo's existing convention (`feat/coding-rules-solid-dry`, `fix/issue-53-device-logs-auto-invoke`)
+  — never an opaque default like `worktree-1` that tells a reader nothing about what's on it.
 - Before the first edit in any new session, check `git status`/`git branch --show-current`. If
   the working tree already has uncommitted changes or sits on a branch unrelated to the task at
   hand, treat that as another session's in-progress work, not something safe to build on top of,
@@ -23,6 +30,8 @@
   git worktree instead of stashing or switching branches in a single working tree, so uncommitted
   work on one feature never blocks or bleeds into another.
 - Never push to a repo's default branch. Branch first, then open a pull request.
+- Once a PR merges, delete the merged branch, switch back to `main`, and pull the latest `main`
+  before starting the next task, so the next branch cuts from an up-to-date base.
 - Every pull request body must follow the project's PR template.
 - Keep an open PR's title and description accurate as its branch evolves. After pushing new
   commits to a branch that already has an open PR, update the PR (`gh pr edit <number>
