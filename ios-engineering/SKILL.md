@@ -135,6 +135,12 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
 - **Keep `xcodebuild` output filtered.** Any `xcodebuild` call (build, test, build-for-testing)
   defaults to a pass/fail/error filter, not the raw log — see `swift-testing-patterns.md`'s
   Workflow for the command. Only drop to the unfiltered log to diagnose a specific failure.
+- **Scope test runs to the iteration loop.** During iterative development, run only the
+  unit/non-UI test target(s) for fast in-process feedback (`-only-testing:<UnitTarget>`, or
+  `RunSomeTests` scoped away from XCUITest targets) — never the full simulator-backed suite after
+  every small edit. Reserve a full run (`RunAllTests`, or unscoped `xcodebuild test`) including
+  XCUITest for a checkpoint: before a commit/PR, or when the change specifically touches a
+  critical UI journey. See `swift-testing-patterns.md`'s Workflow for the mechanics.
 - **Justify new dependencies.** State alternatives considered; prefer stdlib/Apple frameworks.
 - **Profile before optimizing.** Never assume the bottleneck — measure first.
 - **Don't over-generate.** Match the scope of the response to the scope of the request — one

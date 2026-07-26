@@ -18,6 +18,9 @@
 - Give every branch a descriptive name that identifies the feature or work item, following this
   repo's existing convention (`feat/coding-rules-solid-dry`, `fix/issue-53-device-logs-auto-invoke`)
   — never an opaque default like `worktree-1` that tells a reader nothing about what's on it.
+- When a branch/task is opened to work a GitHub issue, assign that issue to yourself
+  (`gh issue edit <number> --add-assignee @me`) as part of creating the branch, not as an
+  afterthought once work is already underway.
 - Before the first edit in any new session, check `git status`/`git branch --show-current`. If
   the working tree already has uncommitted changes or sits on a branch unrelated to the task at
   hand, treat that as another session's in-progress work, not something safe to build on top of,
@@ -33,6 +36,9 @@
 - Once a PR merges, delete the merged branch, switch back to `main`, and pull the latest `main`
   before starting the next task, so the next branch cuts from an up-to-date base.
 - Every pull request body must follow the project's PR template.
+- When the PR closes out a task that originated from a GitHub issue, include a closing keyword
+  (`Closes #<number>`, `Fixes #<number>`, `Resolves #<number>`) in the PR body so merging to the
+  default branch auto-closes the issue — never close the issue as a separate manual step.
 - Keep an open PR's title and description accurate as its branch evolves. After pushing new
   commits to a branch that already has an open PR, update the PR (`gh pr edit <number>
   --title ... --body ...`) so it always describes the full current state of the branch — every

@@ -151,11 +151,18 @@ only what matters (`Order.fixture(status: .expired)` — the noise stays in the 
    explicit tests for cancellation and error propagation.
 7. **Add the UI-journey test only if this change affects a critical flow**, as an `XCTestCase`
    XCUITest using accessibility identifiers set in production code.
-8. **Run the suite repeatedly** (Xcode's repeat-until-failure option) to flush flakiness —
+8. **Scope runs to the iteration loop.** While iterating, run only the unit/non-UI test
+   target(s) — `-only-testing:<UnitTestTarget>`, or `RunSomeTests` with specifiers scoped away
+   from XCUITest targets — for fast, in-process feedback with no simulator boot. Run the full
+   plan (`RunAllTests`, or unscoped `xcodebuild test`), XCUITest included, only at a checkpoint:
+   before a commit/PR, or when the change specifically touches a critical UI journey. Booting the
+   simulator and running the full suite after every small edit is the most common cause of a slow
+   iteration loop.
+9. **Run the suite repeatedly** (Xcode's repeat-until-failure option) to flush flakiness —
    parallel-by-default Swift Testing execution surfaces shared-state bugs faster than XCTest did
    — confirm each new test fails when the behavior is broken (mutate or revert the fix briefly),
    then verify against the Quality Checklist.
-9. **In an agentic session, default any `xcodebuild` invocation (build, test, or
+10. **In an agentic session, default any `xcodebuild` invocation (build, test, or
    build-for-testing) to filtered output** — the raw log is mostly build-graph noise (Copy,
    CodeSign, Touch lines) and burns context fast for no signal. Pipe through a formatter if one's
    installed (`xcodebuild ... | xcbeautify`), or fall back to a grep filter that keeps the
@@ -330,6 +337,7 @@ final class FeedDiffPerformanceTests: XCTestCase {
 | Tests pass alone, fail in the suite (new under Swift Testing's default parallelism) | Shared state: singletons, real `UserDefaults`, shared store, statics not reset | Per-test isolated stores; construct fixtures fresh in each `@Test`, not shared at `@Suite` scope; `.serialized` only as a last resort |
 | Every refactor breaks dozens of tests, behavior unchanged | Asserting on internals and call sequences instead of outcomes | Test through the public API; assert resulting state; verify interactions only where the call *is* the contract |
 | Suite takes 20 minutes | Logic tested through XCUITest; real network in unit tests | Push logic tests down to `@Test`s with mocked seams; cap UI tests to a few journeys |
+| Every edit triggers a simulator boot and feels slow | Full test plan (incl. XCUITest) run on every iteration instead of at a checkpoint | Scope iteration runs to the unit-test target (`-only-testing:`/`RunSomeTests`); save `RunAllTests`/the full plan for pre-commit checkpoints |
 | Crash mid-run instead of one clean failure | Force unwraps in test code | `try #require(...)` — fails the single test with a message instead of killing the run |
 | Async test passes even though the code is broken | Forgot to `await`, or `confirm()` called before the operation under test ran | Make the test fail first by breaking the code; prefer `async`/`await` over manual synchronization |
 | UI tests break on every copy change | Querying by visible label text | Stable `accessibilityIdentifier`s set in production code |
