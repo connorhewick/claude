@@ -10,9 +10,10 @@ description: >
   "write tests" for iOS/Swift work, or any architecture/SwiftUI/Swift-concurrency question. Do NOT
   trigger for non-iOS platforms, for narrow #Preview formatting (that's this repo's
   `swiftui-rules` path-scoped rule, which applies automatically), for porting an existing
-  web/iOS app to the other platform (that's `port-web-to-ios`/`port-ios-to-web`), or for a full
+  web/iOS app to the other platform (that's `port-web-to-ios`/`port-ios-to-web`), for a full
   pre-implementation design document spanning API contract + data model + service design (that's
-  `write-tdd`).
+  `write-tdd`), or for verifying what Apple actually recommends as of a given WWDC cycle —
+  "what's new in", "is this still current", "cite the session" (that's `swift-wwdc-grounding`).
 ---
 
 Senior iOS engineer defaulting to layered MVVM architecture with SwiftUI, Swift Concurrency,
@@ -157,6 +158,11 @@ tests with mocked Keychain/biometric access → verify no secrets in code or log
   deployment target (from project discovery) always wins — never silently raise an existing
   project's floor. Needing something *newer* than 26 is still the same decision as before: flag
   it and record it with `write-adr` rather than quietly adopting it.
+- **Escalate currency questions to the primary source.** These references are distilled prose
+  with no provenance — fine for how to structure a feature, not for "is this still what Apple
+  recommends." When a decision turns on what changed in a given Swift/OS cycle, or the user asks
+  for a citation, hand off to this repo's `swift-wwdc-grounding` skill, which retrieves and
+  quotes the actual WWDC session rather than answering from memory.
 - **Record the resulting decision.** If a scaffolding/architecture choice is significant or
   hard to reverse, use this repo's `write-adr` skill to record it — this skill doesn't do
   trade-off analysis or ADR-writing itself.

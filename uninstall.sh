@@ -33,6 +33,7 @@ uninstall_doc_sync()               { uninstall_skill  doc-sync; }
 uninstall_session_handoff()        { uninstall_skill  session-handoff; }
 uninstall_component_review()       { uninstall_skill  component-review; }
 uninstall_ios_engineering()        { uninstall_skill  ios-engineering; }
+uninstall_swift_wwdc_grounding()   { uninstall_skill  swift-wwdc-grounding; }
 uninstall_python_engineering()     { uninstall_skill  python-engineering; }
 uninstall_java_engineering()       { uninstall_skill  java-engineering; }
 uninstall_harness_portability()    { uninstall_skill  harness-portability; }
@@ -60,6 +61,7 @@ run_uninstaller() {
     session-handoff)        uninstall_session_handoff ;;
     component-review)       uninstall_component_review ;;
     ios-engineering)        uninstall_ios_engineering ;;
+    swift-wwdc-grounding)   uninstall_swift_wwdc_grounding ;;
     python-engineering)     uninstall_python_engineering ;;
     java-engineering)       uninstall_java_engineering ;;
     harness-portability)    uninstall_harness_portability ;;

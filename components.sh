@@ -22,6 +22,7 @@ ALL_COMPONENTS=(
   session-handoff
   component-review
   ios-engineering
+  swift-wwdc-grounding
   python-engineering
   java-engineering
   harness-portability
@@ -49,7 +50,8 @@ is_known_component() {
   case "$1" in
     write-prd|write-adr|write-tdd|write-architecture-doc|prepare-pr|split-commits| \
     device-logs|port-ios-to-web|port-web-to-ios|doc-sync| \
-    session-handoff|component-review|ios-engineering|python-engineering|java-engineering| \
+    session-handoff|component-review|ios-engineering|swift-wwdc-grounding| \
+    python-engineering|java-engineering| \
     harness-portability|issue-workplan|harness-scaffold|statusline|global-rules|git-rules| \
     swiftui-rules|documentation-rules|coding-rules)
       return 0 ;;

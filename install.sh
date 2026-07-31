@@ -34,6 +34,7 @@ install_doc_sync()               { install_skill  doc-sync; }
 install_session_handoff()        { install_skill  session-handoff; }
 install_component_review()       { install_skill  component-review; }
 install_ios_engineering()        { install_skill  ios-engineering; }
+install_swift_wwdc_grounding()   { install_skill  swift-wwdc-grounding; }
 install_python_engineering()     { install_skill  python-engineering; }
 install_java_engineering()       { install_skill  java-engineering; }
 install_harness_portability()    { install_skill  harness-portability; }
@@ -61,6 +62,7 @@ run_installer() {
     session-handoff)        install_session_handoff ;;
     component-review)       install_component_review ;;
     ios-engineering)        install_ios_engineering ;;
+    swift-wwdc-grounding)   install_swift_wwdc_grounding ;;
     python-engineering)     install_python_engineering ;;
     java-engineering)       install_java_engineering ;;
     harness-portability)    install_harness_portability ;;
