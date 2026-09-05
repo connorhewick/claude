@@ -23,8 +23,16 @@ work that spans more than one task; a genuinely single-purpose tree just gets on
   and offer to branch — all changes go through a branch and PR (`AGENTS.md`).
 - **No rebase/merge in progress** (`git status` clean of conflict markers). If one is active,
   stop.
+- **Is this checkout shared?** Where `git-rules`' shared-checkout exception applies, another
+  session may hold its own staged index or commit onto this branch while you work. Both of this
+  skill's tree-global operations are destructive there: §4's `git reset -q` discards whatever
+  they staged, and `git reset --soft $START` rewinds any commit that landed after `START` was
+  recorded. Confirm with the user that the tree is yours alone before starting; if they can't
+  confirm it, don't run the skill.
 - Record the starting point: `START=$(git rev-parse HEAD)`. Tell the user that everything this
-  skill does is undoable with `git reset --soft $START` (commits are local and unpushed).
+  skill does is undoable with `git reset --soft $START` (commits are local and unpushed) — check
+  `git log $START..HEAD` before offering that undo, since it also rewinds any commit another
+  session added to the branch in the meantime.
 
 ## 1 — Survey the changes
 
@@ -55,7 +63,9 @@ rationale. Order so earlier commits don't depend on later ones. Then ask for exp
 Normalize the index once so staging is fully under your control: `git reset -q` (unstages
 everything; the working tree is untouched). Then, for each group in order:
 
-- **Whole files** (including new and deleted): `git add -A -- <paths>`.
+- **Whole files** (including new and deleted): `git add -A -- <paths>`. The pathspec is
+  mandatory — `-A` is only there to catch deletions within those paths. Never the bare
+  `git add -A`/`git add .`, which sweeps in whatever else the tree is carrying.
 - **Partial (hunk-split) files:** select only this concern's hunks and stage them via a
   zero-context patch. Default diff context can merge changes that are within ~6 lines into one
   hunk, so use `-U0` to separate them, and apply with `--unidiff-zero`:
