@@ -28,10 +28,14 @@
   (`EnterWorktree`/`ExitWorktree`) instead of editing the shared checkout. Do this even if this
   is the session's very first action: a fresh session has no memory of what else may already be
   running against the same checkout, so opening a new terminal tab and starting a new task must
-  never risk interfering with work already in progress there.
+  never risk interfering with work already in progress there. **Unless the project's own
+  `CLAUDE.md` states the checkout is deliberately shared** — some toolchains drive a single
+  fixed path and cannot follow a session into a worktree — in which case follow that file's
+  procedural mitigations instead.
 - When more than one feature is active at once (from this session or another), give each its own
   git worktree instead of stashing or switching branches in a single working tree, so uncommitted
-  work on one feature never blocks or bleeds into another.
+  work on one feature never blocks or bleeds into another. Same exception as above: a project that
+  documents its checkout as deliberately shared overrides this.
 - Never push to a repo's default branch. Branch first, then open a pull request.
 - Once a PR merges, delete the merged branch, switch back to `main`, and pull the latest `main`
   before starting the next task, so the next branch cuts from an up-to-date base.
