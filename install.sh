@@ -13,7 +13,8 @@ source "$here/components.sh"
 source "$here/common.sh"
 
 usage() {
-  echo "Usage: $0 all | rules | <component> [<component> ...]" >&2
+  echo "Usage: $0 [--check] all | rules | <component> [<component> ...]" >&2
+  echo "  --check  report drift between this repo and the installed copies; write nothing" >&2
   echo "Known components:" >&2
   printf '  %s\n' "${ALL_COMPONENTS[@]}" >&2
 }
@@ -79,6 +80,14 @@ run_installer() {
   esac
 }
 
+if [[ "${1:-}" == "--check" ]]; then
+  # Routes every install_* helper in common.sh through compare_installed
+  # instead of copying, so the check covers exactly what an install writes.
+  CHECK_ONLY=1
+  DRIFT_FOUND=0
+  shift
+fi
+
 if [[ $# -eq 0 ]]; then
   usage
   exit 1
@@ -102,3 +111,14 @@ done
 for name in "${targets[@]}"; do
   run_installer "$name"
 done
+
+if [[ -n "${CHECK_ONLY:-}" ]]; then
+  echo
+  if [[ "$DRIFT_FOUND" -eq 0 ]]; then
+    echo "no drift: $CLAUDE_DIR matches this repo for ${#targets[@]} component(s)."
+  else
+    echo "drift found: $CLAUDE_DIR differs from this repo. Re-install to overwrite (the" >&2
+    echo "current file is backed up first), or back-port the installed copy if it's ahead." >&2
+    exit 1
+  fi
+fi

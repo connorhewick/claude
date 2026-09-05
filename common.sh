@@ -28,10 +28,39 @@ backup_if_exists() {
   echo "  backed up existing $target -> $backup"
 }
 
+# Compare what's installed against what this repo would install, for
+# `install.sh --check`. Each install_* helper below routes here before doing any
+# work when CHECK_ONLY is set, so the source->destination mapping stays defined
+# once, in the installer that owns it. Sets DRIFT_FOUND so the caller can exit
+# non-zero; a dry-run install into a scratch CLAUDE_CONFIG_DIR cannot catch this
+# class of problem, because it never reads the config directory in real use.
+compare_installed() {
+  local label="$1" src="$2" dest="$3"
+
+  if [[ ! -e "$dest" ]]; then
+    echo "MISSING  $label -> $dest"
+    DRIFT_FOUND=1
+    return 0
+  fi
+
+  if [[ -d "$src" ]]; then
+    diff -rq "$src" "$dest" >/dev/null 2>&1 && { echo "ok       $label"; return 0; }
+  else
+    cmp -s "$src" "$dest" && { echo "ok       $label"; return 0; }
+  fi
+
+  echo "DRIFTED  $label -> $dest"
+  DRIFT_FOUND=1
+}
+
 # --- skill: <name>/SKILL.md (+ optional scripts/) -> ~/.claude/skills/<name>/
 install_skill() {
   local name="$1"
   local dest="$CLAUDE_DIR/skills/$name"
+  if [[ -n "${CHECK_ONLY:-}" ]]; then
+    compare_installed "skill $name" "$SRC/$name" "$dest"
+    return 0
+  fi
   local staging
   staging="$(mktemp -d)"
   cp -r "$SRC/$name/." "$staging/"
@@ -61,6 +90,10 @@ uninstall_skill() {
 install_agent() {
   local name="$1"
   local dest="$CLAUDE_DIR/agents/$name.md"
+  if [[ -n "${CHECK_ONLY:-}" ]]; then
+    compare_installed "agent $name" "$SRC/$name/agent.md" "$dest"
+    return 0
+  fi
   if [[ -f "$dest" ]] && cmp -s "$SRC/$name/agent.md" "$dest"; then
     echo "agent $name is already up to date — nothing to do."
     return 0
@@ -81,6 +114,10 @@ uninstall_agent() {
 install_rule() {
   local name="$1"
   local dest="$CLAUDE_DIR/rules/$name.md"
+  if [[ -n "${CHECK_ONLY:-}" ]]; then
+    compare_installed "rule $name" "$SRC/rules/$name.md" "$dest"
+    return 0
+  fi
   if [[ -f "$dest" ]] && cmp -s "$SRC/rules/$name.md" "$dest"; then
     echo "rule $name is already up to date — nothing to do."
     return 0
@@ -103,6 +140,10 @@ uninstall_rule() {
 install_output_style() {
   local name="$1"
   local dest="$CLAUDE_DIR/output-styles/$name.md"
+  if [[ -n "${CHECK_ONLY:-}" ]]; then
+    compare_installed "output style $name" "$SRC/$name/output-style.md" "$dest"
+    return 0
+  fi
   if [[ -f "$dest" ]] && cmp -s "$SRC/$name/output-style.md" "$dest"; then
     echo "output style $name is already up to date — nothing to do."
     return 0
@@ -127,6 +168,10 @@ uninstall_output_style() {
 install_command_file() {
   local name="$1"
   local dest="$CLAUDE_DIR/commands/$name.md"
+  if [[ -n "${CHECK_ONLY:-}" ]]; then
+    compare_installed "command $name" "$SRC/$name/command.md" "$dest"
+    return 0
+  fi
   if [[ -f "$dest" ]] && cmp -s "$SRC/$name/command.md" "$dest"; then
     echo "command $name is already up to date — nothing to do."
     return 0
@@ -158,6 +203,21 @@ install_hook() {
   local event matcher
   event="$(jq -r '.event' "$meta")"
   matcher="$(jq -r '.matcher // "*"' "$meta")"
+
+  if [[ -n "${CHECK_ONLY:-}" ]]; then
+    compare_installed "hook $name script" "$SRC/$name/hook.sh" "$dest"
+    local settings="$CLAUDE_DIR/settings.json"
+    if [[ -f "$settings" ]] && jq -e --arg event "$event" --arg matcher "$matcher" --arg cmd "$dest" '
+        [(.hooks[$event] // [])[] | select(.matcher == $matcher) | (.hooks // [])[] | select(.command == $cmd)]
+        | length > 0
+      ' "$settings" >/dev/null; then
+      echo "ok       hook $name registration (settings.json .hooks.$event)"
+    else
+      echo "MISSING  hook $name registration (settings.json .hooks.$event)"
+      DRIFT_FOUND=1
+    fi
+    return 0
+  fi
 
   if [[ -f "$dest" ]] && cmp -s "$SRC/$name/hook.sh" "$dest"; then
     echo "hook $name script is already up to date."
@@ -241,6 +301,17 @@ uninstall_hook() {
 install_statusline_file() {
   local name="$1"
   local dest="$CLAUDE_DIR/statuslines/$name.sh"
+  if [[ -n "${CHECK_ONLY:-}" ]]; then
+    compare_installed "statusline $name" "$SRC/$name/statusline.sh" "$dest"
+    local settings="$CLAUDE_DIR/settings.json"
+    if [[ -f "$settings" ]] && [[ "$(jq -r '.statusLine.command // empty' "$settings")" == "$dest" ]]; then
+      echo "ok       statusline $name selection (settings.json .statusLine)"
+    else
+      echo "MISSING  statusline $name selection (settings.json .statusLine)"
+      DRIFT_FOUND=1
+    fi
+    return 0
+  fi
   mkdir -p "$CLAUDE_DIR/statuslines"
   if [[ -f "$dest" ]] && cmp -s "$SRC/$name/statusline.sh" "$dest"; then
     echo "statusline $name is already up to date — nothing to do."
@@ -267,6 +338,10 @@ install_statusline_file() {
 install_claude_md_file() {
   local name="$1"
   local dest="$CLAUDE_DIR/CLAUDE.md"
+  if [[ -n "${CHECK_ONLY:-}" ]]; then
+    compare_installed "$name" "$SRC/$name/CLAUDE.md" "$dest"
+    return 0
+  fi
   if [[ -f "$dest" ]] && cmp -s "$SRC/$name/CLAUDE.md" "$dest"; then
     echo "$name is already up to date — nothing to do."
     return 0

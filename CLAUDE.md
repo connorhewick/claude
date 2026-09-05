@@ -7,7 +7,10 @@ maintaining the claude component-repo itself.
 ## Definition of done (this repo's checks)
 
 The "checks pass" clause of the Definition of done in `~/.claude/CLAUDE.md` means, for this repo:
-a dry-run install/uninstall.
+a dry-run install/uninstall, plus `./install.sh --check all`. The dry-run runs against a scratch
+`CLAUDE_CONFIG_DIR` and proves the wiring installs and removes cleanly; `--check` reads the real
+`~/.claude` and is the only one of the two that catches a component edited in place there and
+never back-ported.
 
 ## Claude Code
 

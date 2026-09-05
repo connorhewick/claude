@@ -20,7 +20,14 @@ installs globally, across every project on your machine.
 ./uninstall.sh write-prd         # remove just that one
 ./uninstall.sh rules              # remove every rule-type component
 ./uninstall.sh all               # remove everything this repo installed
+./install.sh --check all          # report drift against ~/.claude; writes nothing
 ```
+
+`--check` compares every component against its installed copy and exits non-zero if any differ.
+Editing a component in `~/.claude` and forgetting to back-port it is the failure it exists to
+catch: an install would otherwise overwrite that edit (backing it up, but reverting the live
+behaviour), and a dry-run install into a scratch directory can't see it, because that never
+reads the real config directory.
 
 Re-running `install.sh` is safe — anything it would overwrite gets backed up first to
 `~/.claude/.component-backups/`, never silently clobbered. Backups never land inside the

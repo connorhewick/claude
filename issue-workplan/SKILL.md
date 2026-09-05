@@ -62,7 +62,10 @@ across the selected set:
   `../<repo>-issue-<n>/` on `feat/<slug>`) per `git-rules`' worktree-per-feature convention — this
   is what lets separate terminal sessions work each issue at once without interfering with each
   other or with the session running this plan. Sequential (non-parallel) issues don't need this;
-  one worktree at a time is enough for those.
+  one worktree at a time is enough for those. Where `git-rules`' shared-checkout exception
+  applies to the target repo, issues needing the pinned toolchain can't take a worktree at all —
+  sequence those instead of parallelizing them, and record in the plan that they share one
+  checkout, since the session executing it has nobody to ask.
 - **Priority** — if issues carry an explicit priority (as this repo's own issues do, in a
   "**Priority: PN**" line), let it inform ordering within a dependency tier, not override one.
 
