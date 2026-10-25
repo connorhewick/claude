@@ -16,11 +16,15 @@
 - **Checkout & payments:** guest checkout, wallets/local payment methods, tax, shipping-rate
   rules, fraud screening, hosted payment fields (out of PCI scope).
 - **Fulfilment promise:** stock reservation, delivery estimates, carrier integration, labels,
-  order-status emails. *Digital/service offers:* entitlement delivery (access, licence key,
-  booking confirmation), recurring billing, dunning.
+  order-status emails.
+- **Services & bookings:** availability calendar, booking flow, deposits or prepayment,
+  confirmations and reminders, rescheduling and cancellation rules.
+- **Digital goods & subscriptions:** entitlement delivery (access, licence key, download),
+  account access, recurring billing, failed-payment handling (dunning).
 - **Customer lifecycle:** accounts, order tracking, returns/refunds, reviews, email/SMS flows,
   abandoned-cart recovery.
-- **Trust & compliance:** policies, consent (GDPR), accessibility, consumer-rights rules,
+- **Trust & compliance:** policies, privacy, consent and anti-spam law for the regions
+  sold into (e.g. GDPR, CCPA, PIPEDA/CASL), accessibility, consumer-rights rules,
   secure-checkout signals.
 - **Analytics & operations:** funnel events, dashboards, alerts on checkout failure, admin
   tooling.

@@ -16,7 +16,8 @@ Move one entity up one level at a time, only when the manual cost justifies it.
 
 Every adapter implements `extract → map → validate → load`:
 
-- Maps into canonical Pydantic-style schemas; the canonical model is the contract.
+- Maps into typed, validated canonical schemas (e.g. Pydantic where the build is Python); the
+  canonical model is the contract.
 - Idempotent upsert keyed on a stable external ID.
 - Bad rows are **quarantined, never silently dropped or half-loaded**; each gets a reason a
   non-technical owner can act on.

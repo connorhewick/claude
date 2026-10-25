@@ -4,6 +4,8 @@
 `<Size> × <L0–L4> × <entity>: <maturity>, …` — plus offer type.
 
 ## Funnel baseline
+Cite a source for every number; otherwise write `unknown` and how to measure it.
+
 | Stage | Metric | Current | Target | Source |
 |---|---|---|---|---|
 | Discover | Sessions, source mix | | | |
@@ -25,9 +27,13 @@
 | Context | Decision | Rationale | Revisit when |
 |---|---|---|---|
 
-## Phase gates
-| Step | Exit gate | Rollback | Metric guardrail |
+## Requirements
+| Requirement | Verify (bought) / Implement (built) | How it is met | Evidence |
 |---|---|---|---|
+
+## Phases 5–7 plan
+| Phase | Tasks | Owner | Exit gate | Rollback | Metric guardrail |
+|---|---|---|---|---|---|
 
 ## ADR stub
 Use `write-adr` for decisions that are significant or hard to reverse (platform choice, source
