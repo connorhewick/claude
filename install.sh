@@ -40,6 +40,7 @@ install_java_engineering()       { install_skill  java-engineering; }
 install_harness_portability()    { install_skill  harness-portability; }
 install_issue_workplan()         { install_skill  issue-workplan; }
 install_harness_scaffold()       { install_skill  harness-scaffold; }
+install_ecommerce_plan()           { install_skill  ecommerce-plan; }
 install_statusline()             { install_statusline_file statusline; }
 install_global_rules()           { install_claude_md_file global-rules; }
 install_git_rules()              { install_rule git-rules; }
@@ -67,6 +68,7 @@ run_installer() {
     harness-portability)    install_harness_portability ;;
     issue-workplan)         install_issue_workplan ;;
     harness-scaffold)       install_harness_scaffold ;;
+    ecommerce-plan)         install_ecommerce_plan ;;
     statusline)             install_statusline ;;
     global-rules)           install_global_rules ;;
     git-rules)              install_git_rules ;;
