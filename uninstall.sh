@@ -39,6 +39,7 @@ uninstall_harness_portability()    { uninstall_skill  harness-portability; }
 uninstall_issue_workplan()         { uninstall_skill  issue-workplan; }
 uninstall_harness_scaffold()       { uninstall_skill  harness-scaffold; }
 uninstall_ecommerce_plan()           { uninstall_skill  ecommerce-plan; }
+uninstall_redesign_site()            { uninstall_skill  redesign-site; }
 uninstall_statusline()             { uninstall_statusline_file statusline; }
 uninstall_global_rules()           { uninstall_claude_md_file global-rules; }
 uninstall_git_rules()              { uninstall_rule git-rules; }
@@ -67,6 +68,7 @@ run_uninstaller() {
     issue-workplan)         uninstall_issue_workplan ;;
     harness-scaffold)       uninstall_harness_scaffold ;;
     ecommerce-plan)         uninstall_ecommerce_plan ;;
+    redesign-site)          uninstall_redesign_site ;;
     statusline)             uninstall_statusline ;;
     global-rules)           uninstall_global_rules ;;
     git-rules)              uninstall_git_rules ;;

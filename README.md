@@ -57,6 +57,7 @@ never mistaken for a live component or auto-loaded into a session.
 | [`issue-workplan`](issue-workplan) | skill | Auto-trigger or `/issue-workplan` | `~/.claude/skills/issue-workplan/` | Turns a group of GitHub issues into a self-contained workplan doc for a fresh/autonomous session to implement later |
 | [`harness-scaffold`](harness-scaffold) | skill | Auto-trigger or `/harness-scaffold` | `~/.claude/skills/harness-scaffold/` | Stands up this repo's own component-library structure (manifest, install/uninstall scripts, README index) for a different target harness |
 | [`ecommerce-plan`](ecommerce-plan) | skill | `/ecommerce-plan` only | `~/.claude/skills/ecommerce-plan/` | Builds a repeatable, size-adaptive (micro/small/medium) plan for improving or enabling a business's online commerce, across manual-to-API data-entry realities (bundles 5 topic references) |
+| [`redesign-site`](redesign-site) | skill | `/redesign-site` only | `~/.claude/skills/redesign-site/` | Audits an existing public site with cited evidence, then drafts a redesign that enables online sales — strategy, IA/redirects, templates, copy, and a spec, hosted-platform setup, or custom code — with two approval gates and a traceability self-check |
 | [`statusline`](statusline) | statusline | `/statusline` to select, then persists | `~/.claude/statuslines/statusline.sh` | Folder, git branch, model, effort, context bar, tokens, cache %, cost, rate limit |
 | [`global-rules`](global-rules) | global-rules | Automatic, every session | `~/.claude/CLAUDE.md` | Personal cross-project defaults, loaded in every project on this machine |
 | [`git-rules`](rules/git-rules.md) | rule | Automatic, every session | `~/.claude/rules/git-rules.md` | Personal git/version-control conventions: commits, branches, worktrees, PR hygiene |
@@ -86,7 +87,7 @@ any given one; in general, by what that column says:
   or invoke it directly.
 - **`/<name>` only** — slash commands (no auto-trigger by design). A skill can also be gated this
   way (`disable-model-invocation: true`) for an action too consequential to fire without being
-  named explicitly; `ecommerce-plan` uses that gate.
+  named explicitly; `ecommerce-plan` and `redesign-site` use that gate.
 - **`/<name>` to select, then persists** — statuslines and output styles: pick once, active for
   the rest of the session without further invocation.
 - **Spawned by Claude, never invoked directly** — agents (the `agent.md` extension point — no

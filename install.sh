@@ -41,6 +41,7 @@ install_harness_portability()    { install_skill  harness-portability; }
 install_issue_workplan()         { install_skill  issue-workplan; }
 install_harness_scaffold()       { install_skill  harness-scaffold; }
 install_ecommerce_plan()           { install_skill  ecommerce-plan; }
+install_redesign_site()            { install_skill  redesign-site; }
 install_statusline()             { install_statusline_file statusline; }
 install_global_rules()           { install_claude_md_file global-rules; }
 install_git_rules()              { install_rule git-rules; }
@@ -69,6 +70,7 @@ run_installer() {
     issue-workplan)         install_issue_workplan ;;
     harness-scaffold)       install_harness_scaffold ;;
     ecommerce-plan)         install_ecommerce_plan ;;
+    redesign-site)          install_redesign_site ;;
     statusline)             install_statusline ;;
     global-rules)           install_global_rules ;;
     git-rules)              install_git_rules ;;
