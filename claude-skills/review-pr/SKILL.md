@@ -4,7 +4,7 @@ description: >
   Review someone else's pull request — a branch this session did not write — and report
   findings at a defined severity bar. Use when the user says "review PR #n", "review this
   branch", "what do you think of <person>'s PR", or asks for a review of work that is not the
-  current diff. Not for this session's own branch (ship). Never approves or merges; it produces a
+  current diff. Not for this session's own branch. Never approves or merges; it produces a
   verdict.
 allowed-tools: Bash(git *), Bash(gh pr *), Bash(gh api *), Read, Grep, Glob, AskUserQuestion
 ---

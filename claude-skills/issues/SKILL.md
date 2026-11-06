@@ -3,7 +3,7 @@ name: issues
 description: >
   Pick up, file or cross-reference issues and tickets. Use when starting work from an issue,
   when the user says "file an issue", "open a ticket", "work on #n", "pick up this issue", or
-  when a change overlaps existing issues. Not for the PR itself (ship) or reviewing others' work
+  when a change overlaps existing issues. Not for the PR itself or reviewing others' work
   (review-pr).
 allowed-tools: Bash(gh issue *), Bash(gh label list *), Bash(git *), Read, Grep, AskUserQuestion
 ---

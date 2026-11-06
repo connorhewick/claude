@@ -54,16 +54,15 @@ A project's own `CLAUDE.md`, `AGENTS.md` or `.claude/rules/` beats everything be
 - **Verify the way the stack allows** — run it, render it, call it; `/run` finds the project's
   launch path. "It compiles" is not verification.
 - **Run `walkthrough` before calling non-trivial work done**, unless there is nothing to decide.
-- **Nothing opens a PR before it has been reviewed outside the context that wrote it.** `ship`
-  runs the sequence and owns the body; `review-pr` reviews someone else's.
+- **Nothing opens a PR before it has been reviewed outside the context that wrote it.**
+  `review-pr` reviews someone else's.
 - **Finish the whole task.** If part is blocked, finish the rest and say what was left and why.
   Scaling the work down is my call.
 
 ## Version control
 
 - **Conventional Commits.**
-- **Never commit or push unless asked.** Invoking `ship` is asking: it may push the current
-  non-default branch. Cutting an `integration/<slug>` branch per `session-hygiene.md` pushes it
+- **Never commit or push unless asked.** Cutting an `integration/<slug>` branch per `session-hygiene.md` pushes it
   too; the WIP commit is the remaining exception. **Never push to the default branch.**
 - **Branch `<type>/<slug>`**, issue number first when there is one
   (`fix/issue-53-device-logs-auto-invoke`). Work from an issue follows the `issues` skill.

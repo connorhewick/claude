@@ -42,7 +42,6 @@ session does not pick up changed configuration.
 | `claude-rules/testing.md` | path-scoped | a test file is read |
 | `claude-rules/contracts.md` | path-scoped | a contract, migration or schema file is read |
 | `claude-rules/rules-authoring.md` | path-scoped | a rule file, a `CLAUDE.md` or an `AGENTS.md` is read |
-| `claude-skills/ship` | on demand | "ship this", "open a PR" |
 | `claude-skills/walkthrough` | on demand | before a PR; "walk me through it" |
 | `claude-skills/review-pr` | on demand | "review PR #n" |
 | `claude-skills/issues` | on demand | "work on #n", "file an issue" |
@@ -61,7 +60,6 @@ say something, this table decides which does.
 | Fact | Owner |
 |---|---|
 | Generated-document contents (table of contents) | `claude-rules/global-rules.md` §Generated documents |
-| Flags, rollback, watching a change land after merge | `claude-skills/ship` §Say how it is turned off |
 | Code design, errors, concurrency, logging | `claude-rules/code.md` |
 | When a comment earns its place; debugging | `claude-rules/code.md` |
 | What earns a test, test shape, determinism, flakes | `claude-rules/testing.md` |
@@ -69,7 +67,6 @@ say something, this table decides which does.
 | `/security-review` trigger list; secrets; production data | `claude-rules/security.md` |
 | Repository-state checks; unrecognised commits; when to start fresh | `claude-rules/session-hygiene.md` |
 | Rule-file form, scoping, reversal, file-versus-section | `claude-rules/rules-authoring.md` |
-| Pre-PR checks, the diff read-through, the PR body template, draft state | `claude-skills/ship` |
 | Pre-PR walkthrough and interview | `claude-skills/walkthrough` |
 | Picking up, filing and cross-referencing issues; labels; assignment | `claude-skills/issues` |
 | Severity bar for someone else's PR | `claude-skills/review-pr` |

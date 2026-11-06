@@ -54,7 +54,7 @@ shipped or split, but not un-mixed once a PR is open.
   default branch and push it *before* dispatching; children branch from it, never the default
   branch, and rebase onto it as siblings land. Merge children one at a time (rebase, fast-forward,
   no force) and run the checks after each. Cut a failing child and re-branch it as its own change.
-- **Only the integration branch opens a PR**, via `ship` against the merged result. The body
+- **Only the integration branch opens a PR**, against the merged result. The body
   adds one line per child in merge order, what was cut and why, and test results for the merged
   result only. After merge, delete the integration and child branches and the worktrees.
   Standalone changes get their own PRs — don't batch unrelated work.

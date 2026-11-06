@@ -5,7 +5,6 @@ description: >
   decision that couldn't safely be assumed, and incorporate the answers before the change is
   shipped. Use before opening a PR, before calling a non-trivial change done, or when the user
   says "walk me through it", "what did you decide", "before we ship". Not for trivial changes,
-  and not from inside ship.
 allowed-tools: Bash(git *), Read, Grep, Glob, AskUserQuestion
 ---
 
@@ -44,4 +43,4 @@ guess.
 ## 3. Incorporate
 
 Apply the answers before converging the work or opening the PR. If an answer changes the
-approach, say so and return to step 1 for the parts it touched. Then hand off to `ship`.
+approach, say so and return to step 1 for the parts it touched.

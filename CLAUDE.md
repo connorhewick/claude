@@ -17,7 +17,7 @@ governed by whatever `~/.claude/` holds, which is what `install.sh` last copied 
 - **Run `./check.sh` after every edit.** It fails on a reference to a missing file, section or
   skill; and on frontmatter that would make a rule always-on. `install.sh` won't install a tree
   that fails it.
-- **Refer to a section by its heading**, as `` `ship` §Write the body ``, never by number. A
+- **Refer to a section by its heading**, as `` `code.md` §Debugging ``, never by number. A
   number keeps resolving after a reorder, to the wrong section; `check.sh` rejects it.
 - **Adding a rule**: `rules-authoring.md` loads when a file in `claude-rules/` is read, and
   decides whether it is a new file or a section in an existing one.
@@ -32,5 +32,5 @@ governed by whatever `~/.claude/` holds, which is what `install.sh` last copied 
   leave it.
 - **A change reaches sessions only after `./install.sh` and a new session.** Confirm with
   `/context` there; this session keeps what it loaded at start.
-- Without an `origin` remote, branch from local `main`; the fetch in `session-hygiene.md` and
-  `ship`'s push and PR steps have nothing to talk to.
+- Without an `origin` remote, branch from local `main`; the fetch in `session-hygiene.md` has
+  nothing to talk to.

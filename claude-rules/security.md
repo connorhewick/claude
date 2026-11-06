@@ -1,6 +1,6 @@
 # Secrets and the trust boundary
 
-Always-on. Owns the `/security-review` trigger; `CLAUDE.md` and `ship` point here. Logging rules
+Always-on. Owns the `/security-review` trigger; `CLAUDE.md` points here. Logging rules
 are `code.md`'s.
 
 ## When `/security-review` runs

@@ -29,7 +29,6 @@ A test fails when the behaviour is wrong and says which behaviour from its name 
   delete the test, never retry-on-fail.
 - **Run the whole suite before claiming it passes** and report the counts. A fast subset is for
   iteration only.
-- **A test red on the base branch too** is pre-existing or flaky, not this diff's (`ship` §Run
-  the project's checks). Say which; don't retry until green.
+- **A test red on the base branch too** is pre-existing or flaky, not this diff's. Say which; don't retry until green.
 - **Never change a test to make a change pass** without stating in the PR that the behaviour
   changed and why the old expectation was wrong.
