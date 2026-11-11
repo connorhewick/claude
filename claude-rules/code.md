@@ -51,17 +51,24 @@ Loads when a code file is read.
 
 ## Comments
 
-A comment earns its place by stating a **contract or invariant a reviewer could otherwise
-break** — not by explaining, orienting or narrating.
+The default is no comment. One earns its place only by stating a **contract or invariant whose
+breakage a reviewer could not see in the diff**: a precondition, a unit, an ordering, a data or
+schema constraint, framework behaviour that can't be re-derived, or why an attractive fix is
+wrong. The test: could someone change this code correctly-looking and break something because
+the comment was absent? If not, delete it.
 
-- **Doc comment**: a caller contract (precondition, unit, invariant, what breaks if changed),
-  judged by content, not visibility. **Line comment**: the *why* a maintainer needs.
-- Plain declarative voice. Describe, don't instruct, except to warn against an attractive wrong
-  fix.
-- **Delete** a comment that restates the code, narrates history (git is the record), is true but
-  not worth the lines, or is stale. Also delete call-site enumerations and cross-file references,
-  including to instruction files; a pointer within one file is fine.
-- **Keep regardless**: framework behaviour a reviewer can't re-derive, a caller contract, and
-  the last copy of a fact. A rationale shared by neighbouring declarations is stated once above
-  the group. A test's name carries what it tests; a comment may record why the case exists.
+- **Doc comment**: a caller contract, judged by content, not visibility. Never summarise a type,
+  property or function by what its name and signature already say. A private member gets one only
+  when the rest of its file is the caller that could break the invariant.
+- **Line comment**: the *why*, and only where deleting it would invite a wrong fix.
+- **Delete** a comment that restates the code, orients the reader, narrates history (git is the
+  record), is true but not worth the lines, or is stale. Also delete call-site enumerations,
+  cross-file references (including to instruction files), a figure nothing pins, and a rule a
+  hook, lint or test already enforces: the gate is the record. A pointer within one file is fine.
+- **Keep regardless**: framework behaviour a reviewer can't re-derive, a caller contract, and the
+  last copy of a fact. A rationale shared by neighbouring declarations is stated once above the
+  group. A test's name carries what it tests; a comment may record the bug or edge that is why
+  the case exists.
+- Plain declarative voice, one to three lines. Describe, don't instruct, except to warn against
+  an attractive wrong fix.
 - Don't add a comment that wasn't there as part of tidying one that was.
