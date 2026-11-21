@@ -110,7 +110,7 @@ done
 # and env, which can name private repos, hosts and tokens; a key joins the allowlist only
 # after its values have been read for that.
 settings="$here/claude-settings/settings.json"
-allowed_keys=" enabledPlugins extraKnownMarketplaces pluginConfigs modelSettings advisorModel worktree theme tui voice voiceEnabled inputNeededNotifEnabled agentPushNotifEnabled statusLine "
+allowed_keys=" enabledPlugins extraKnownMarketplaces pluginConfigs advisorModel worktree voice voiceEnabled inputNeededNotifEnabled agentPushNotifEnabled statusLine "
 if ! command -v jq >/dev/null 2>&1; then
   fail "jq is required to check $(rel "$settings")"
 elif ! jq -e 'type == "object"' "$settings" >/dev/null 2>&1; then
