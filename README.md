@@ -1,7 +1,9 @@
 # claude-config
 
-Portable Claude Code defaults: one always-on `CLAUDE.md`, a set of rules, and skills for the
-procedures. Stack-agnostic — nothing names a language or framework.
+Portable Claude Code defaults: one always-on `CLAUDE.md`, a set of rules, skills for the
+procedures, and the user-settings keys every device should share (plugins, model preferences,
+UI, the status line). Stack-agnostic — nothing names a language or framework. Needs `jq`: `/usr/bin/jq`
+on macOS 26, preinstalled in the Claude Code cloud image, `brew install jq` elsewhere.
 
 ## Install
 
@@ -11,7 +13,9 @@ procedures. Stack-agnostic — nothing names a language or framework.
 ```
 
 `install.sh` copies `claude-rules/global-rules.md` to `~/.claude/CLAUDE.md`, the other rules to
-`~/.claude/rules/` and the skills to `~/.claude/skills/`, and does what a plain copy does not:
+`~/.claude/rules/`, the skills to `~/.claude/skills/` and the status line to
+`~/.claude/statuslines/`, writes the keys in `claude-settings/settings.json` into
+`~/.claude/settings.json`, and does what a plain copy does not:
 
 - **Runs `check.sh` first** and refuses to install on a failure: a dangling file, section or
   skill reference, or frontmatter that would silently make a rule always-on.
@@ -22,6 +26,15 @@ procedures. Stack-agnostic — nothing names a language or framework.
 - **Prunes** what a previous install of this bundle placed and this one no longer has, using the
   manifest it writes. Without it, a rule deleted here keeps loading there forever. Each skill
   directory is replaced whole, so a file deleted inside a skill goes too.
+- **Owns settings by top-level key.** Each key in `claude-settings/settings.json` replaces the
+  device's value whole; every other key (`permissions`, `autoMode`, `env`, anything Claude Code
+  adds) is left alone. A key dropped from the bundle is removed on the next install. So a plugin
+  enabled on one device with `/plugin` is dropped by the next install unless it is committed here.
+  To turn a plugin off everywhere, set it to `false`, the explicit off switch. What a device does
+  with an installed plugin whose line was deleted is untested.
+- **Says exactly what it changes** before writing: every file added, edited or removed, and
+  every settings key added, edited or removed, with the device's value beside the bundle's. That
+  diff is the drift report: copy anything worth keeping into `claude-settings/settings.json`.
 - **Reports rule files and skills it does not own**, with whether each rule is always-on. Two
   files disagreeing about the same thing is the one failure nothing detects at runtime: the model
   picks one. If you already have a personal bundle installed, read that list before the first
@@ -45,6 +58,8 @@ session does not pick up changed configuration.
 | `claude-skills/walkthrough` | on demand | before a PR; "walk me through it" |
 | `claude-skills/review-pr` | on demand | "review PR #n" |
 | `claude-skills/issues` | on demand | "work on #n", "file an issue" |
+| `claude-settings/settings.json` | user settings | merged into `~/.claude/settings.json` by key |
+| `claude-settings/statusline.sh` | user settings | installed as `~/.claude/statuslines/statusline.sh` |
 | `CLAUDE.md` | not installed | sessions opened in this repo — how to work on the bundle |
 
 **The always-on tier is the budget worth watching**, and `install.sh` measures it on every run
@@ -73,3 +88,5 @@ say something, this table decides which does.
 | Model tier, agent shape, fan-out cost, verifying what comes back, integration branches | `claude-rules/session-hygiene.md` §Subagents and fan-out |
 | What invoking a skill authorises (push, never merge) | that skill's preamble |
 | Editing this bundle: checks, reference form, skills' `allowed-tools`, naming commands | `CLAUDE.md` |
+| Which plugins, marketplaces, model and UI preferences every device shares | `claude-settings/settings.json` |
+| Which settings keys may be committed at all | `check.sh` (the allowlist) |

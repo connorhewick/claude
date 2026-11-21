@@ -7,6 +7,10 @@
 #   - backs up whatever is already there, before writing anything;
 #   - removes files a previous install of THIS bundle put there and this one no longer has,
 #     so deleting a rule from the repo actually deletes it from the machine;
+#   - replaces only the top-level keys of settings.json that claude-settings/settings.json
+#     declares, leaving every other key alone, and removes a key a previous install owned;
+#   - lists every file it adds, edits or removes, and each settings key it changes, with the
+#     device's value beside the bundle's, before it writes anything;
 #   - reports rule files and skills it does not own, because two files disagreeing about the
 #     same thing is worse than neither existing.
 #
@@ -18,6 +22,11 @@ dest="${CLAUDE_HOME:-$HOME/.claude}"
 manifest="$dest/.claude-config-manifest"
 # Lives beside the rules for editing, but installs as CLAUDE.md and never as a rule.
 global_source="$here/claude-rules/global-rules.md"
+settings_source="$here/claude-settings/settings.json"
+statusline_source="$here/claude-settings/statusline.sh"
+live_settings="$dest/settings.json"
+# Separate from $manifest, whose every line is a path the prune step may `rm -rf`.
+settings_manifest="$dest/.claude-config-settings-keys"
 dry_run=false
 [[ "${1:-}" == "--dry-run" ]] && dry_run=true
 
@@ -57,54 +66,151 @@ fi
 planned=("CLAUDE.md")
 for f in "${bundle_rules[@]}"; do planned+=("rules/$(basename "$f")"); done
 for d in "$here/claude-skills/"*/; do planned+=("skills/$(basename "$d")"); done
+planned+=("statuslines/statusline.sh")
 
-# --- back up whatever is already there ----------------------------------------------------
-# A rerun that changes nothing backs nothing up, or ~/.claude/.backups grows on every run.
-up_to_date() {
-  local f d old
-  cmp -s "$global_source" "$dest/CLAUDE.md" || return 1
-  for f in "${bundle_rules[@]}"; do cmp -s "$f" "$dest/rules/$(basename "$f")" || return 1; done
-  for d in "$here/claude-skills/"*/; do
-    diff -rq "${d%/}" "$dest/skills/$(basename "$d")" >/dev/null 2>&1 || return 1
-  done
-  if [[ -f "$manifest" ]]; then
-    while IFS= read -r old; do
-      [[ -z "$old" ]] || in_list "$old" "${planned[@]}" || [[ ! -e "$dest/$old" ]] || return 1
-    done < "$manifest"
-  fi
+source_of() {
+  case "$1" in
+    CLAUDE.md) printf '%s' "$global_source" ;;
+    rules/*) printf '%s' "$here/claude-rules/${1#rules/}" ;;
+    skills/*) printf '%s' "$here/claude-skills/${1#skills/}" ;;
+    statuslines/statusline.sh) printf '%s' "$statusline_source" ;;
+  esac
 }
 
-existing=()
-for path in "CLAUDE.md" "rules" "skills"; do
-  [[ -e "$dest/$path" ]] && existing+=("$path")
+added=()
+edited=()
+for path in "${planned[@]}"; do
+  if [[ ! -e "$dest/$path" ]]; then
+    added+=("$path")
+  elif ! diff -rq "$(source_of "$path")" "$dest/$path" >/dev/null 2>&1; then
+    edited+=("$path")
+  fi
 done
 
-if ((${#existing[@]})) && ! up_to_date; then
-  backup="$dest/.backups/$(date +%Y%m%d-%H%M%S)"
-  say "backing up existing config to $backup"
-  run mkdir -p "$backup"
-  for path in "${existing[@]}"; do
-    run cp -R "$dest/$path" "$backup/"
-  done
-fi
-
-# --- remove what a previous install of this bundle left behind and this one drops ----------
 pruned=()
 if [[ -f "$manifest" ]]; then
   while IFS= read -r old; do
     [[ -z "$old" ]] && continue
     in_list "$old" "${planned[@]}" && continue
     [[ -e "$dest/$old" ]] || continue
-    say "removing (dropped from the bundle): $old"
-    run rm -rf "$dest/$old"
     pruned+=("$old")
   done < "$manifest"
 fi
 
+# --- settings.json: the keys this bundle owns ---------------------------------------------
+# Each owned top-level key is replaced whole, so an entry added on the device and never
+# committed here is dropped; the report below shows it before anything is written.
+if ! command -v jq >/dev/null 2>&1; then
+  say "jq is required to merge claude-settings/settings.json into $live_settings; install it and rerun"
+  exit 1
+fi
+
+current='{}'
+# A symlinked file (a dotfiles setup) would be replaced by a regular one on write, and `cp -p`
+# would back up the link rather than its content.
+for linked in "$live_settings" "$dest/statuslines/statusline.sh"; do
+  if [[ -L "$linked" ]]; then
+    say "$linked is a symlink; point CLAUDE_HOME at the real directory or replace the link, then rerun"
+    exit 1
+  fi
+done
+if [[ -e "$live_settings" ]]; then
+  if ! current="$(jq -c . "$live_settings" 2>/dev/null)" || ! jq -e 'type == "object"' <<<"$current" >/dev/null; then
+    say "$live_settings is not a JSON object; fix it by hand before installing"
+    exit 1
+  fi
+fi
+
+# statusLine.command is stored relative to the config directory, so the repo names no home
+# directory and the same file installs for any user, CLAUDE_HOME included. Claude Code runs the
+# command through a shell, so the absolute path is quoted.
+quoted_dest="$(printf '%q' "$dest")"
+want="$(jq -c --arg dest "$quoted_dest" \
+  'if ((.statusLine? // {}) | .command? // "") != "" then .statusLine.command = ($dest + "/" + .statusLine.command) else . end' \
+  "$settings_source")"
+
+owned=()
+while IFS= read -r key; do owned+=("$key"); done < <(jq -r 'keys_unsorted[]' <<<"$want")
+
+dropped=()
+if [[ -f "$settings_manifest" ]]; then
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    in_list "$key" "${owned[@]+"${owned[@]}"}" && continue
+    jq -e --arg k "$key" 'has($k)' <<<"$current" >/dev/null && dropped+=("$key")
+  done < "$settings_manifest"
+fi
+
+value_of() { jq -S --arg k "$2" '.[$k]' <<<"$1"; }
+
+settings_added=()
+settings_edited=()
+for key in "${owned[@]}"; do
+  if ! jq -e --arg k "$key" 'has($k)' <<<"$current" >/dev/null; then
+    settings_added+=("$key")
+  elif [[ "$(value_of "$current" "$key")" != "$(value_of "$want" "$key")" ]]; then
+    settings_edited+=("$key")
+  fi
+done
+
+merged="$(jq --argjson want "$want" '(reduce $ARGS.positional[] as $k (.; del(.[$k]))) + $want' \
+  --args "${dropped[@]+"${dropped[@]}"}" <<<"$current")"
+
+changes=$((${#added[@]} + ${#edited[@]} + ${#pruned[@]} + ${#settings_added[@]} + ${#settings_edited[@]} + ${#dropped[@]}))
+
+# --- report every change before making it -------------------------------------------------
+indent() { sed 's/^/      /'; }
+
+if ((changes == 0)); then
+  say "no changes: $dest already matches this bundle"
+else
+  $dry_run && say "would change in $dest:" || say "changing in $dest:"
+  for path in "${added[@]+"${added[@]}"}"; do say "  added:   $path"; done
+  for path in "${edited[@]+"${edited[@]}"}"; do say "  edited:  $path"; done
+  for path in "${pruned[@]+"${pruned[@]}"}"; do say "  removed: $path (dropped from the bundle)"; done
+  for key in "${settings_added[@]+"${settings_added[@]}"}"; do say "  settings.json: added .$key"; done
+  for key in "${settings_edited[@]+"${settings_edited[@]}"}"; do
+    # pluginConfigs holds a plugin's options, which can include sensitive values; the report
+    # lands in scrollback and logs, so it names the key without printing either side.
+    if [[ "$key" == pluginConfigs ]]; then
+      say "  settings.json: edited .$key (values not shown)"
+      continue
+    fi
+    say "  settings.json: edited .$key (- device, + bundle)"
+    diff -u <(value_of "$current" "$key") <(value_of "$want" "$key") | tail -n +3 | indent || true
+  done
+  for key in "${dropped[@]+"${dropped[@]}"}"; do
+    if [[ "$key" == pluginConfigs ]]; then
+      say "  settings.json: removed .$key (values not shown)"
+      continue
+    fi
+    say "  settings.json: removed .$key (dropped from the bundle; was:)"
+    value_of "$current" "$key" | indent
+  done
+fi
+
+# --- back up whatever is about to change --------------------------------------------------
+# A rerun that changes nothing backs nothing up, or ~/.claude/.backups grows on every run.
+existing=()
+for path in "CLAUDE.md" "rules" "skills" "statuslines" "settings.json"; do
+  [[ -e "$dest/$path" ]] && existing+=("$path")
+done
+
+if ((${#existing[@]})) && ((changes > 0)); then
+  backup="$dest/.backups/$(date +%Y%m%d-%H%M%S)"
+  say "backing up existing config to $backup"
+  run mkdir -p "$backup"
+  for path in "${existing[@]}"; do
+    run cp -Rp "$dest/$path" "$backup/"
+  done
+fi
+
 # --- install ------------------------------------------------------------------------------
+for old in "${pruned[@]+"${pruned[@]}"}"; do run rm -rf "$dest/$old"; done
+
 # A skill directory is replaced, not merged into: `cp -R` over an existing directory keeps
 # any file the new version deleted.
-run mkdir -p "$dest/rules" "$dest/skills"
+run mkdir -p "$dest/rules" "$dest/skills" "$dest/statuslines"
 run cp "$global_source" "$dest/CLAUDE.md"
 for f in "${bundle_rules[@]}"; do run cp "$f" "$dest/rules/"; done
 for d in "$here/claude-skills/"*/; do
@@ -112,9 +218,33 @@ for d in "$here/claude-skills/"*/; do
   run rm -rf "$dest/skills/$name"
   run cp -R "${d%/}" "$dest/skills/$name"
 done
-$dry_run || printf '%s\n' "${planned[@]}" > "$manifest"
+run cp "$statusline_source" "$dest/statuslines/statusline.sh"
+run chmod +x "$dest/statuslines/statusline.sh"
 
-say "installed to $dest: CLAUDE.md, $((${#planned[@]} - 1)) rules and skills"
+# Written beside the target and renamed over it, so an interrupted run never leaves a
+# truncated settings.json; 600 because the file also holds permissions and env.
+if ((${#settings_added[@]} + ${#settings_edited[@]} + ${#dropped[@]})); then
+  if $dry_run; then
+    say "  would: write $live_settings"
+  else
+    tmp="$(mktemp "$dest/.settings.json.XXXXXX")"
+    trap 'rm -f "$tmp"' EXIT
+    printf '%s\n' "$merged" > "$tmp"
+    chmod 600 "$tmp"
+    mv "$tmp" "$live_settings"
+  fi
+fi
+
+if ! $dry_run; then
+  printf '%s\n' "${planned[@]}" > "$manifest"
+  printf '%s\n' "${owned[@]}" > "$settings_manifest"
+fi
+
+if $dry_run; then
+  say "dry run: nothing written to $dest"
+else
+  say "installed to $dest: CLAUDE.md, $((${#planned[@]} - 1)) rules, skills and the status line, ${#owned[@]} settings keys"
+fi
 
 # --- rule files and skills this bundle does not own ----------------------------------------
 # A rule with no `paths:` front matter loads in every session. Two of those covering the same

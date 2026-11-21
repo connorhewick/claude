@@ -1,0 +1,51 @@
+{
+  "enabledPlugins": {
+    "swift-lsp@claude-plugins-official": true,
+    "ponytail@ponytail": true,
+    "caveman@caveman": true,
+    "frontend-design@anthropic-plugin-directory": true,
+    "github@anthropic-plugin-directory": true,
+    "feature-dev@anthropic-plugin-directory": true,
+    "security-guidance@anthropic-plugin-directory": true,
+    "claude-code-setup@anthropic-plugin-directory": true
+  },
+  "extraKnownMarketplaces": {
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      },
+      "autoUpdate": true
+    },
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      },
+      "autoUpdate": true
+    }
+  },
+  "pluginConfigs": {
+    "ponytail@ponytail": {
+      "options": {
+        "ledger": true,
+        "sendNames": true
+      }
+    }
+  },
+  "advisorModel": "opus",
+  "worktree": {
+    "bgIsolation": "none"
+  },
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "voiceEnabled": true,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
+  "statusLine": {
+    "type": "command",
+    "command": "statuslines/statusline.sh"
+  }
+}
