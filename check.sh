@@ -105,6 +105,43 @@ for doc in "${documents[@]}"; do
   done < <(flatten "$doc" | grep -oE '`[^`]+` §[^`]{1,80}' || true)
 done
 
+# --- settings -----------------------------------------------------------------------------
+# This repo is public. ~/.claude/settings.json beside these keys holds permissions, autoMode
+# and env, which can name private repos, hosts and tokens; a key joins the allowlist only
+# after its values have been read for that.
+settings="$here/claude-settings/settings.json"
+allowed_keys=" enabledPlugins extraKnownMarketplaces pluginConfigs modelSettings advisorModel worktree theme tui voice voiceEnabled inputNeededNotifEnabled agentPushNotifEnabled statusLine "
+if ! command -v jq >/dev/null 2>&1; then
+  fail "jq is required to check $(rel "$settings")"
+elif ! jq -e 'type == "object"' "$settings" >/dev/null 2>&1; then
+  fail "$(rel "$settings"): not a JSON object"
+else
+  while IFS= read -r key; do
+    case "$key" in
+      *[[:space:]]*) fail "$(rel "$settings"): key \`$key\` contains whitespace" ;;
+      *) [[ "$allowed_keys" == *" $key "* ]] \
+           || fail "$(rel "$settings"): key \`$key\` is not on the allowlist in check.sh; this repo is public" ;;
+    esac
+  done < <(jq -r 'keys[]' "$settings")
+  while IFS= read -r path; do
+    fail "$(rel "$settings"): \`$path\` is named like a secret; set it on the device, not here"
+  done < <(jq -r '[paths(scalars)][] | map(tostring) | join(".")' "$settings" \
+    | grep -iE 'token|secret|password|passwd|api.?key|credential|webhook|auth|bearer|private.?key|signing|cookie|session|passphrase' || true)
+  # Free-form keys (marketplaces, pluginConfigs) can carry a credential in a value under an
+  # innocent name, so the values are scanned too.
+  while IFS= read -r value; do
+    fail "$(rel "$settings"): a value looks like a credential or a user home path: ${value:0:20}..."
+  done < <(jq -r '.. | strings' "$settings" \
+    | grep -E 'ghp_|github_pat_|sk-[A-Za-z0-9]|xox[bp]-|AKIA|://[^/ ]*@|Bearer |/Users/|/home/' || true)
+  statusline="$(jq -r '(.statusLine? // {}) | (.command? // empty)' "$settings")"
+  [[ -z "$statusline" || "$statusline" == "statuslines/statusline.sh" ]] \
+    || fail "$(rel "$settings"): statusLine.command must be \`statuslines/statusline.sh\`, the path install.sh places"
+fi
+# The status line is code that runs on every device; nothing in it may name a home or a secret.
+if grep -nE '/Users/|/home/[a-z]|ghp_|github_pat_|sk-[A-Za-z0-9]|xox[bp]-|AKIA|://[^/ ]*@' "$here/claude-settings/statusline.sh" >/dev/null; then
+  fail "claude-settings/statusline.sh: names a home path or looks like it holds a credential"
+fi
+
 if ((failures)); then
   printf '\n%s check(s) failed\n' "$failures"
   exit 1

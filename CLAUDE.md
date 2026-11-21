@@ -10,6 +10,10 @@ governed by whatever `~/.claude/` holds, which is what `install.sh` last copied 
   skips it when copying `claude-rules/`, and it carries no frontmatter.
 - Every other `claude-rules/*.md` goes to `~/.claude/rules/`; each `claude-skills/<name>/`
   replaces `~/.claude/skills/<name>/`.
+- `claude-settings/settings.json` is merged into `~/.claude/settings.json` one top-level key at
+  a time; `claude-settings/statusline.sh` goes to `~/.claude/statuslines/`. **This repo is
+  public**: `check.sh` refuses a settings key outside its allowlist and any path named like a
+  secret. Read a key's values before adding it to the allowlist.
 - This file installs nowhere.
 
 ## Changing the bundle
